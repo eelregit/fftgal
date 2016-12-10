@@ -18,6 +18,7 @@ int main()
     double err = F(octet,0,0,0)-64./27;
     double eps = 1e-14;
     fprintf(stdout, "* error on octet.fx[0,0,0] = %e\n", err); assert(fabs(err) < eps);
+    /* expected result: 8/27*{8, 4, 4, 4, 2, 2, 2, 1} */
 
     fftgal_fx2fk(octet);
     for(i=0; i<octet.Ng; ++i)
