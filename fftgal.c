@@ -79,9 +79,9 @@ void fftgal_x2fx(fftgal_t self, double *x, double *y, double *z,
         double xp = fma(x[p], Hinv, offset);
         double yp = fma(y[p], Hinv, offset);
         double zp = fma(z[p], Hinv, offset);
-        int xint = rint(x[p]);
-        int yint = rint(y[p]);
-        int zint = rint(z[p]);
+        int xint = rint(xp);
+        int yint = rint(yp);
+        int zint = rint(zp);
         double dx = xp - xint;
         double dy = yp - yint;
         double dz = zp - zint;
