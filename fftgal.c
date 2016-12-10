@@ -131,26 +131,26 @@ void fftgal_deconv(fftgal_t self)
 {
     int Ng = self.Ng;
     int Ng_half = Ng / 2;
-    double ping = M_PI / Ng;
-    double *Winv = (double *)malloc(sizeof(double) * Ng); assert(Winv!=NULL);
-    Winv[0] = 1.;
+    double *winv = (double *)malloc(sizeof(double) * Ng); assert(winv!=NULL);
+    winv[0] = 1.;
     int i, j, k;
     for(i=1; i<=Ng_half; ++i){
-        double arg = ping * i;
-        Winv[i] = pow2(pow2(arg / sin(arg)));
-        Winv[Ng-i] = Winv[i];
+        double arg = M_PI * i / Ng;
+        winv[i] = pow2(pow2(arg / sin(arg)));
+        winv[Ng-i] = winv[i];
     }
     time_t t0, t1;
     time(&t0);
     for(i=0; i<Ng; ++i)
         for(j=0; j<Ng; ++j)
             for(k=0; k<=Ng_half; ++k){
-                F(self,i,j,2*k) *= Winv[i] * Winv[j] * Winv[k];
-                F(self,i,j,2*k+1) *= Winv[i] * Winv[j] * Winv[k];
+                Winv = winv[i] * winv[j] * winv[k];
+                F(self,i,j,2*k) *= Winv;
+                F(self,i,j,2*k+1) *= Winv;
             }
     time(&t1);
     fprintf(stderr, "%.3f sec to deconvolve paintbrush\n", difftime(t1, t0));
-    free(Winv);
+    free(winv);
 }
 
 

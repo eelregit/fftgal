@@ -8,7 +8,7 @@ int main()
     fftgal_t octet = fftgal_init(2, 2., "FFTW_ESTIMATE");
 
     double x[1] = {0.}, y[1] = {0.}, z[1] = {0.};
-    fftgal_x2fx(octet, x, y, z, 1, 0.5);
+    fftgal_x2fx(octet, x, y, z, 1, -9.5);
 
     int i, j, k;
     for(i=0; i<octet.Ng; ++i)
