@@ -18,38 +18,38 @@ double pow3(double x)
 }
 
 
-fftgal_t fftgal_init(int Ng, double L, char wisdom[])
+fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
 {
-    fftgal_t self;
-    self.Ng = Ng;
-    self.L = L;
+    fftgal_t *self = (fftgal_t *)malloc(sizeof(fftgal_t)); assert(self!=NULL);
+    self->Ng = Ng;
+    self->L = L;
 
     int Ng_half = Ng / 2;
     int Ng_pad = 2 * (Ng_half + 1);
-    self.Ng_pad = Ng_pad;
+    self->Ng_pad = Ng_pad;
     long int Ng3_pad = (long int)Ng * (long int)Ng * (long int)Ng_pad;
-    self.Ng3_pad  = Ng3_pad;
+    self->Ng3_pad  = Ng3_pad;
     double *fx = (double *)fftw_malloc(Ng3_pad * sizeof(double)); assert(fx!=NULL);
     fftw_complex *fk = (fftw_complex *)fx;
-    self.f = fx;
+    self->f = fx;
 
     time_t t0, t1;
     if(!strcmp(wisdom, "FFTW_ESTIMATE")){
         fprintf(stderr, "using FFTW_ESTIMATE\n");
-        self.fx2fk = fftw_plan_dft_r2c_3d(Ng, Ng, Ng, fx, fk, FFTW_ESTIMATE);
-        self.fk2fx = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_ESTIMATE);
+        self->fx2fk = fftw_plan_dft_r2c_3d(Ng, Ng, Ng, fx, fk, FFTW_ESTIMATE);
+        self->fk2fx = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_ESTIMATE);
     }
     else{
         int ret = fftw_import_wisdom_from_filename(wisdom);
         if(ret){
             fprintf(stderr, "wisdom imported from %s\n", wisdom);
-            self.fx2fk = fftw_plan_dft_r2c_3d(Ng, Ng, Ng, fx, fk, FFTW_ESTIMATE);
-            self.fk2fx = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_ESTIMATE);
+            self->fx2fk = fftw_plan_dft_r2c_3d(Ng, Ng, Ng, fx, fk, FFTW_ESTIMATE);
+            self->fk2fx = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_ESTIMATE);
         }
         else{
             time(&t0);
-            self.fx2fk = fftw_plan_dft_r2c_3d(Ng, Ng, Ng, fx, fk, FFTW_MEASURE);
-            self.fk2fx = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_MEASURE);
+            self->fx2fk = fftw_plan_dft_r2c_3d(Ng, Ng, Ng, fx, fk, FFTW_MEASURE);
+            self->fk2fx = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_MEASURE);
             ret = fftw_export_wisdom_to_filename(wisdom); assert(ret);
             fprintf(stderr, "wisdom exported to %s\n", wisdom);
             time(&t1);
@@ -61,17 +61,17 @@ fftgal_t fftgal_init(int Ng, double L, char wisdom[])
 }
 
 
-void fftgal_x2fx(fftgal_t self, double *x, double *y, double *z,
+void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
         long long int Np3, double offset)
 {
     time_t t0, t1;
     time(&t0);
     long int g;
-    for(g=0; g<self.Ng3_pad; ++g){ /* must plan before initialization */
-        self.f[g] = 0.;
+    for(g=0; g<self->Ng3_pad; ++g){ /* must plan before initialization */
+        self->f[g] = 0.;
     }
-    int Ng = self.Ng;
-    double Hinv = self.Ng / self.L;
+    int Ng = self->Ng;
+    double Hinv = self->Ng / self->L;
     offset -= 0.5;
     int ret = fesetround(FE_DOWNWARD); assert(!ret);
     long long int p;
@@ -103,33 +103,33 @@ void fftgal_x2fx(fftgal_t self, double *x, double *y, double *z,
                 for(kk=0; kk<4; ++kk)
                     F(self, i[ii], j[jj], k[kk]) += wx[ii] * wy[jj] * wz[kk];
     }
-    double Ng3perNp3 = pow3(self.Ng) / Np3;
-    for(g=0; g<self.Ng3_pad; ++g){
-        self.f[g] *= Ng3perNp3;
+    double Ng3perNp3 = pow3(self->Ng) / Np3;
+    for(g=0; g<self->Ng3_pad; ++g){
+        self->f[g] *= Ng3perNp3;
     }
     time(&t1);
     fprintf(stderr, "%.3f sec to paint\n", difftime(t1, t0));
 }
 
 
-void fftgal_fx2fk(fftgal_t self)
+void fftgal_fx2fk(fftgal_t *self)
 {
     time_t t0, t1;
     time(&t0);
-    fftw_execute(self.fx2fk);
-    double H3 = pow3(self.L / self.Ng);
+    fftw_execute(self->fx2fk);
+    double H3 = pow3(self->L / self->Ng);
     long int g;
-    for(g=0; g<self.Ng3_pad; ++g){
-        self.f[g] *= H3;
+    for(g=0; g<self->Ng3_pad; ++g){
+        self->f[g] *= H3;
     }
     time(&t1);
     fprintf(stderr, "%.3f sec to FFT f(x) to f(k)\n", difftime(t1, t0));
 }
 
 
-void fftgal_deconv(fftgal_t self)
+void fftgal_deconv(fftgal_t *self)
 {
-    int Ng = self.Ng;
+    int Ng = self->Ng;
     int Ng_half = Ng / 2;
     double *winv = (double *)malloc(sizeof(double) * Ng); assert(winv!=NULL);
     winv[0] = 1.;
@@ -144,7 +144,7 @@ void fftgal_deconv(fftgal_t self)
     for(i=0; i<Ng; ++i)
         for(j=0; j<Ng; ++j)
             for(k=0; k<=Ng_half; ++k){
-                Winv = winv[i] * winv[j] * winv[k];
+                double Winv = winv[i] * winv[j] * winv[k];
                 F(self,i,j,2*k) *= Winv;
                 F(self,i,j,2*k+1) *= Winv;
             }
@@ -154,7 +154,7 @@ void fftgal_deconv(fftgal_t self)
 }
 
 
-void fftgal_x2fk(fftgal_t self, double *x, double *y, double *z, long long int Np3)
+void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int Np3)
 {
     fprintf(stderr, "interlacing with half-grid offset\n");
     fftgal_x2fx(self, x, y, z, Np3, 0.5);
@@ -169,53 +169,54 @@ void fftgal_x2fk(fftgal_t self, double *x, double *y, double *z, long long int N
     fftgal_fx2fk(self);
 
     long int g;
-    for(g=0; g<self.Ng3_pad; ++g){
-        self.f[g] = 0.5 * (fdual[g] + self.f[g]);
+    for(g=0; g<self->Ng3_pad; ++g){
+        self->f[g] = 0.5 * (fdual[g] + self->f[g]);
     }
     free(fdual);
 }
 
 
-void fftgal_fk2fx(fftgal_t self)
+void fftgal_fk2fx(fftgal_t *self)
 {
     time_t t0, t1;
     time(&t0);
-    fftw_execute(self.fk2fx);
+    fftw_execute(self->fk2fx);
     time(&t1);
-    double L3inv = 1 / pow3(self.L);
+    double L3inv = 1 / pow3(self->L);
     long int g;
-    for(g=0; g<self.Ng3_pad; ++g){
-        self.f[g] *= L3inv;
+    for(g=0; g<self->Ng3_pad; ++g){
+        self->f[g] *= L3inv;
     }
     fprintf(stderr, "%.3f sec to FFT f(k) to f(x)\n", difftime(t1, t0));
 }
 
 
-double *fftgal_copyf(fftgal_t self)
+double *fftgal_copyf(fftgal_t *self)
 {
-    double *f_copy = (double *)malloc(self.Ng3_pad * sizeof(double)); assert(f_copy!=NULL);
-    memcpy(f_copy, self.f, self.Ng3_pad * sizeof(double));
+    double *f_copy = (double *)malloc(self->Ng3_pad * sizeof(double)); assert(f_copy!=NULL);
+    memcpy(f_copy, self->f, self->Ng3_pad * sizeof(double));
     return f_copy;
 }
 
 
-void fftgal_freef(fftgal_t self)
-{
-    free(self.f);
-}
-
-
-void fftgal_savef(fftgal_t self, char *filename)
+void fftgal_savef(fftgal_t *self, char *filename)
 {
     FILE *fp = fopen(filename, "wb"); assert(fp!=NULL);
-    size_t ret = fwrite(self.f, sizeof(double), self.Ng3_pad, fp); assert(ret==self.Ng3_pad);
+    size_t ret = fwrite(self->f, sizeof(double), self->Ng3_pad, fp); assert(ret==self->Ng3_pad);
     fclose(fp);
 }
 
 
-void fftgal_readf(fftgal_t self, char *filename)
+void fftgal_readf(fftgal_t *self, char *filename)
 {
     FILE *fp = fopen(filename, "rb"); assert(fp!=NULL);
-    size_t ret = fread(self.f, sizeof(double), self.Ng3_pad, fp); assert(ret==self.Ng3_pad);
+    size_t ret = fread(self->f, sizeof(double), self->Ng3_pad, fp); assert(ret==self->Ng3_pad);
     fclose(fp);
+}
+
+
+void fftgal_kill(fftgal_t *self)
+{
+    free(self->f);
+    free(self);
 }

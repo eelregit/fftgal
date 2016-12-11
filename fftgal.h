@@ -4,7 +4,7 @@
 #include <fftw3.h>
 
 
-#define F(self,i,j,k) self.f[((long int)(k) + self.Ng_pad * ((long int)(j) + self.Ng * (long int)(i)))]
+#define F(self,i,j,k) self->f[((long int)(k) + self->Ng_pad * ((long int)(j) + self->Ng * (long int)(i)))]
 
 
 typedef struct {
@@ -19,32 +19,32 @@ typedef struct {
 
 
 /* allocate f[] and plan fftw */
-fftgal_t fftgal_init(int Ng, double L, char wisdom[]);
+fftgal_t *fftgal_init(int Ng, double L, char wisdom[]);
 
 
 /* paint , forward FFT, and deconvolve paintbrush */
-void fftgal_x2fx(fftgal_t self, double *x, double *y, double *z,
+void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
         long long int Np3, double offset);
-void fftgal_fx2fk(fftgal_t self);
-void fftgal_deconv(fftgal_t self);
+void fftgal_fx2fk(fftgal_t *self);
+void fftgal_deconv(fftgal_t *self);
 
 
 /* simple interface combining painting, FFT, and deconvolution with interlacing */
-void fftgal_x2fk(fftgal_t self, double *x, double *y, double *z, long long int Np3);
+void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int Np3);
 
 
 /* backward FFT */
-void fftgal_fk2fx(fftgal_t self);
+void fftgal_fk2fx(fftgal_t *self);
 
 
 /* make a copy of f[] */
-double *fftgal_copyf(fftgal_t self);
-
-
-/* free f[] */
-void fftgal_freef(fftgal_t self);
+double *fftgal_copyf(fftgal_t *self);
 
 
 /* save and read f[] from files */
-void fftgal_savef(fftgal_t self, char *filename);
-void fftgal_readf(fftgal_t self, char *filename);
+void fftgal_savef(fftgal_t *self, char *filename);
+void fftgal_readf(fftgal_t *self, char *filename);
+
+
+/* free fftgal */
+void fftgal_kill(fftgal_t *self);
