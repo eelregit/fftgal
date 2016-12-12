@@ -38,19 +38,19 @@ int normalize(double x[3])
 
 
 void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
-        long long int Np3, double *xd, double *yd, double *zd,
+        long long int Np3, double **xd, double **yd, double **zd,
         double los[3], double aH)
 {
-    xd = (double *)malloc(Np3 * sizeof(double)); assert(xd!=NULL);
-    yd = (double *)malloc(Np3 * sizeof(double)); assert(yd!=NULL);
-    zd = (double *)malloc(Np3 * sizeof(double)); assert(zd!=NULL);
+    *xd = (double *)malloc(Np3 * sizeof(double)); assert(*xd!=NULL);
+    *yd = (double *)malloc(Np3 * sizeof(double)); assert(*yd!=NULL);
+    *zd = (double *)malloc(Np3 * sizeof(double)); assert(*zd!=NULL);
     normalize(los);
     double aHinv = 1 / aH;
     for(long long int p=0; p<Np3; ++p){
         double vdotlos = los[0]*vx[p] + los[1]*vy[p] + los[2]*vz[p];
-        xd[p] = x[p] + aHinv * vdotlos * los[0];
-        yd[p] = y[p] + aHinv * vdotlos * los[1];
-        zd[p] = z[p] + aHinv * vdotlos * los[2];
+        (*xd)[p] = x[p] + aHinv * vdotlos * los[0];
+        (*yd)[p] = y[p] + aHinv * vdotlos * los[1];
+        (*zd)[p] = z[p] + aHinv * vdotlos * los[2];
     }
     fprintf(stderr, "rsd() %lld particles\n", Np3);
 }

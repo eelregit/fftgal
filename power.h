@@ -9,9 +9,10 @@
  * the conformal Hubble a*H = a*H0*E(a), H0=100[h km/s/Mpc]
  * x, y, z in [0, L]^3 but xd, yd, zd may not
  * los[] doesn't have to be normalized
+ * xd, yd, zd are allocated, remember to free them
  */
 void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
-        long long int Np3, double *xd, double *yd, double *zd,
+        long long int Np3, double **xd, double **yd, double **zd,
         double los[3], double aH);
 
 /* multipoles, return number of bins

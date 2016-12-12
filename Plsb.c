@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
     double *x, *y, *z, *vx, *vy, *vz, *M;
     int *issat;
-    qpm_cubic_mocks_read(catalog, Np3, x, y, z, vx, vy, vz, M, issat);
+    qpm_cubic_mocks_read(catalog, Np3, &x, &y, &z, &vx, &vy, &vz, &M, &issat);
 
     double *xd, *yd, *zd;
     double los[3] = {0., 0., 1.};
@@ -45,12 +45,12 @@ int main(int argc, char *argv[])
             "/project/projectdirs/boss/galaxy/QPM/dr12d_cubic_mocks/a%lf_%04d.mock",
             &a, &catid); assert(ret==2);
     double aH = a * H(a);
-    rsd(x, y, z, vx, vy, vz, Np3, xd, yd, zd, los, aH);
+    rsd(x, y, z, vx, vy, vz, Np3, &xd, &yd, &zd, los, aH);
     pbc(xd, yd, zd, Np3, L);
 
     double *xsb, *ysb, *zsb;
     double xyzlim[6] = {0., 2560., 0., 2560., 0., 2560.};
-    int Np3sb = subbox(xd, yd, zd, Np3, xyzlim, xsb, ysb, zsb, Np3);
+    int Np3sb = subbox(xd, yd, zd, Np3, xyzlim, &xsb, &ysb, &zsb, Np3);
     assert(Np3sb==Np3);
 
     fftgal_x2fk(fg, xsb, ysb, zsb, Np3);
