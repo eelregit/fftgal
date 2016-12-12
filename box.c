@@ -26,7 +26,7 @@ long long int subbox(double *x, double *y, double *z, long long int Np3, double 
     zsb = (double *)malloc(Np3sb_max * sizeof(double)); assert(zsb!=NULL);
     long long int p, Np3sb;
     for(p=0, Np3sb=0; p<Np3 && Np3sb<Np3sb_max; ++p)
-        if(x[p]>=xmin && x[p]<xmax && y[p]>=ymin && y[p]<ymax && z[p]>=zmin && z[p]<ymax){
+        if(x[p]>=xmin && x[p]<xmax && y[p]>=ymin && y[p]<ymax && z[p]>=zmin && z[p]<zmax){
             xsb[Np3sb] = x[p];
             ysb[Np3sb] = y[p];
             zsb[Np3sb] = z[p];
