@@ -15,7 +15,7 @@ void pbc(double *x, double *y, double *z, long long int Np3, double L)
     }
 }
 
-long long int subbox(double *x, double *y, double *z, long long int Np3, double *xyzlim,
+long long int subbox(double *x, double *y, double *z, long long int Np3, double xyzlim[6],
         double *xsb, double *ysb, double *zsb, long long int Np3sb_max)
 {
     double xmin = xyzlim[0], xmax = xyzlim[1];
