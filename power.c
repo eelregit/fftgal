@@ -88,7 +88,7 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
                 double delta2 = pow2(F(fg,i,j,2*k)) + pow2(F(fg,i,j,2*k+1));
                 normalize(Kvec);
                 double mu2 = pow2(Kvec[0]*los[0] + Kvec[1]*los[1] + Kvec[2]*los[2]);
-                int count = (1 + (2*k%Ng > 0)) * (i*j*k > 0);
+                int count = (1 + (2*k%Ng > 0)) * (i+j+k > 0);
                 K[b] += count * Kamp;
                 P0[b] += count * delta2;
                 P2[b] += count * delta2 * fma(1.5, mu2, 0.5);
