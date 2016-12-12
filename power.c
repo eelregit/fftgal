@@ -25,7 +25,7 @@ double amp(double x[3])
 int normalize(double x[3])
 {
     double xamp = amp(x);
-    if(xamp > 1e-5){
+    if(xamp > 1e-7){
         x[0] /= xamp;
         x[1] /= xamp;
         x[2] /= xamp;
