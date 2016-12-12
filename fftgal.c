@@ -6,6 +6,9 @@
 #include <math.h>
 #include <fenv.h>
 #include "fftgal.h"
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
 
 
 static double pow2(double x)
