@@ -21,4 +21,5 @@ void qpm_cubic_mocks_read(char *catalog, int Np3, double *x, double *y, double *
                 x+i, y+i, z+i, vx+i, vy+i, vz+i, M+i, issat+i);
         assert(ret==8);
     }
+    fclose(fp);
 }
