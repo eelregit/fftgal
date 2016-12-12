@@ -23,6 +23,7 @@ fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
     fftgal_t *self = (fftgal_t *)malloc(sizeof(fftgal_t)); assert(self!=NULL);
     self->Ng = Ng;
     self->L = L;
+    self->Np3 = 0; /* until painted */
 
     int Ng_half = Ng / 2;
     int Ng_pad = 2 * (Ng_half + 1);
@@ -64,18 +65,17 @@ fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
 void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
         long long int Np3, double offset)
 {
+    self->Np3 = Np3;
     time_t t0, t1;
     time(&t0);
-    long int g;
-    for(g=0; g<self->Ng3_pad; ++g){ /* must plan before initialization */
+    for(long int g=0; g<self->Ng3_pad; ++g){ /* must plan before initialization */
         self->f[g] = 0.;
     }
     int Ng = self->Ng;
     double Hinv = self->Ng / self->L;
     offset -= 0.5;
     int ret = fesetround(FE_DOWNWARD); assert(!ret);
-    long long int p;
-    for(p=0; p<Np3; ++p){
+    for(long long int p=0; p<Np3; ++p){
         double xp = fma(x[p], Hinv, offset);
         double yp = fma(y[p], Hinv, offset);
         double zp = fma(z[p], Hinv, offset);
@@ -97,14 +97,13 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
                     fma(fma(fma(-3, dy, 3), dy, 3), dy, 1) / 6, pow3(dy) / 6};
         double wz[4] = {pow3(1 - dz) / 6, fma(fma(3, dz, -6), pow2(dz), 4) / 6,
                     fma(fma(fma(-3, dz, 3), dz, 3), dz, 1) / 6, pow3(dz) / 6};
-        int ii, jj, kk;
-        for(ii=0; ii<4; ++ii)
-            for(jj=0; jj<4; ++jj)
-                for(kk=0; kk<4; ++kk)
+        for(int ii=0; ii<4; ++ii)
+            for(int jj=0; jj<4; ++jj)
+                for(int kk=0; kk<4; ++kk)
                     F(self, i[ii], j[jj], k[kk]) += wx[ii] * wy[jj] * wz[kk];
     }
     double Ng3perNp3 = pow3(self->Ng) / Np3;
-    for(g=0; g<self->Ng3_pad; ++g){
+    for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] *= Ng3perNp3;
     }
     time(&t1);
@@ -118,8 +117,7 @@ void fftgal_fx2fk(fftgal_t *self)
     time(&t0);
     fftw_execute(self->fx2fk);
     double H3 = pow3(self->L / self->Ng);
-    long int g;
-    for(g=0; g<self->Ng3_pad; ++g){
+    for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] *= H3;
     }
     time(&t1);
@@ -133,17 +131,16 @@ void fftgal_deconv(fftgal_t *self)
     int Ng_half = Ng / 2;
     double *winv = (double *)malloc(sizeof(double) * Ng); assert(winv!=NULL);
     winv[0] = 1.;
-    int i, j, k;
-    for(i=1; i<=Ng_half; ++i){
+    for(int i=1; i<=Ng_half; ++i){
         double arg = M_PI * i / Ng;
         winv[i] = pow2(pow2(arg / sin(arg)));
         winv[Ng-i] = winv[i];
     }
     time_t t0, t1;
     time(&t0);
-    for(i=0; i<Ng; ++i)
-        for(j=0; j<Ng; ++j)
-            for(k=0; k<=Ng_half; ++k){
+    for(int i=0; i<Ng; ++i)
+        for(int j=0; j<Ng; ++j)
+            for(int k=0; k<=Ng_half; ++k){
                 double Winv = winv[i] * winv[j] * winv[k];
                 F(self,i,j,2*k) *= Winv;
                 F(self,i,j,2*k+1) *= Winv;
@@ -168,8 +165,7 @@ void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int 
     fftgal_deconv(self);
     fftgal_fx2fk(self);
 
-    long int g;
-    for(g=0; g<self->Ng3_pad; ++g){
+    for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] = 0.5 * (fdual[g] + self->f[g]);
     }
     free(fdual);
@@ -183,8 +179,7 @@ void fftgal_fk2fx(fftgal_t *self)
     fftw_execute(self->fk2fx);
     time(&t1);
     double L3inv = 1 / pow3(self->L);
-    long int g;
-    for(g=0; g<self->Ng3_pad; ++g){
+    for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] *= L3inv;
     }
     fprintf(stderr, "%.3f sec to FFT f(k) to f(x)\n", difftime(t1, t0));

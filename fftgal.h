@@ -14,6 +14,7 @@ typedef struct {
     int Ng;
     int Ng_pad; /* 2 * (Ng/2 + 1) */
     long int Ng3_pad; /* sizeof(f) / sizeof(double) */
+    long long int Np3;
     double L;
 } fftgal_t;
 
