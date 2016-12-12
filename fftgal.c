@@ -54,7 +54,7 @@ fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
             ret = fftw_export_wisdom_to_filename(wisdom); assert(ret);
             fprintf(stderr, "wisdom exported to %s\n", wisdom);
             time(&t1);
-            fprintf(stderr, "%.3f sec to FFTW_MEASURE\n", difftime(t1, t0));
+            fprintf(stderr, "%.3f sec to FFTW_MEASURE a %d^3 grid\n", difftime(t1, t0), Ng);
         }
     }
 
@@ -107,7 +107,8 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
         self->f[g] *= Ng3perNp3;
     }
     time(&t1);
-    fprintf(stderr, "%.3f sec to paint\n", difftime(t1, t0));
+    fprintf(stderr, "%.3f sec to paint %lld particles to %d^3 grid\n",
+            difftime(t1, t0), Np3, Ng);
 }
 
 
@@ -121,7 +122,8 @@ void fftgal_fx2fk(fftgal_t *self)
         self->f[g] *= H3;
     }
     time(&t1);
-    fprintf(stderr, "%.3f sec to FFT f(x) to f(k)\n", difftime(t1, t0));
+    fprintf(stderr, "%.3f sec to FFT f(x) to f(k) on a %d^3 grid\n",
+            difftime(t1, t0), self->Ng);
 }
 
 
@@ -146,7 +148,8 @@ void fftgal_deconv(fftgal_t *self)
                 F(self,i,j,2*k+1) *= Winv;
             }
     time(&t1);
-    fprintf(stderr, "%.3f sec to deconvolve paintbrush\n", difftime(t1, t0));
+    fprintf(stderr, "%.3f sec to deconvolve paintbrush on a %d^3 grid\n",
+            difftime(t1, t0), Ng);
     free(winv);
 }
 
@@ -155,15 +158,15 @@ void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int 
 {
     fprintf(stderr, "interlacing with half-grid offset\n");
     fftgal_x2fx(self, x, y, z, Np3, 0.5);
-    fftgal_deconv(self);
     fftgal_fx2fk(self);
+    fftgal_deconv(self);
 
     double *fdual = fftgal_copyf(self);
 
     fprintf(stderr, "interlacing with zero offset\n");
     fftgal_x2fx(self, x, y, z, Np3, 0.);
-    fftgal_deconv(self);
     fftgal_fx2fk(self);
+    fftgal_deconv(self);
 
     for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] = 0.5 * (fdual[g] + self->f[g]);
@@ -182,13 +185,15 @@ void fftgal_fk2fx(fftgal_t *self)
     for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] *= L3inv;
     }
-    fprintf(stderr, "%.3f sec to FFT f(k) to f(x)\n", difftime(t1, t0));
+    fprintf(stderr, "%.3f sec to FFT f(k) to f(x) on a %d^3 grid\n",
+            difftime(t1, t0), self->Ng);
 }
 
 
 double *fftgal_copyf(fftgal_t *self)
 {
-    double *f_copy = (double *)malloc(self->Ng3_pad * sizeof(double)); assert(f_copy!=NULL);
+    double *f_copy = (double *)malloc(self->Ng3_pad * sizeof(double));
+    assert(f_copy!=NULL);
     memcpy(f_copy, self->f, self->Ng3_pad * sizeof(double));
     return f_copy;
 }
@@ -197,7 +202,8 @@ double *fftgal_copyf(fftgal_t *self)
 void fftgal_savef(fftgal_t *self, char *filename)
 {
     FILE *fp = fopen(filename, "wb"); assert(fp!=NULL);
-    size_t ret = fwrite(self->f, sizeof(double), self->Ng3_pad, fp); assert(ret==self->Ng3_pad);
+    size_t ret = fwrite(self->f, sizeof(double), self->Ng3_pad, fp);
+    assert(ret==self->Ng3_pad);
     fclose(fp);
 }
 
@@ -205,7 +211,8 @@ void fftgal_savef(fftgal_t *self, char *filename)
 void fftgal_readf(fftgal_t *self, char *filename)
 {
     FILE *fp = fopen(filename, "rb"); assert(fp!=NULL);
-    size_t ret = fread(self->f, sizeof(double), self->Ng3_pad, fp); assert(ret==self->Ng3_pad);
+    size_t ret = fread(self->f, sizeof(double), self->Ng3_pad, fp);
+    assert(ret==self->Ng3_pad);
     fclose(fp);
 }
 

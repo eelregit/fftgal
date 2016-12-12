@@ -22,4 +22,6 @@ void qpm_cubic_mocks_read(char *catalog, int Np3, double *x, double *y, double *
         assert(ret==8);
     }
     fclose(fp);
+
+    fprintf(stderr, "qpm_cubic_mocks_read() %d galaxies\n", Np3);
 }

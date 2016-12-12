@@ -52,6 +52,7 @@ void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
         yd[p] = y[p] + aHinv * vdotlos * los[2];
         zd[p] = z[p] + aHinv * vdotlos * los[3];
     }
+    fprintf(stderr, "rsd() %lld particles\n", Np3);
 }
 
 
@@ -119,6 +120,7 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
     for(int b=0; b<Nb; ++b)
         fprintf(fp, "%f %f %f %f %f %ld\n", K[b], P0[b], P2[b], P4[b], P6[b], N[b]);
     fclose(fp);
+    fprintf(stderr, "Pl() wrote to %s\n", output);
 
     free(K);
     free(P0);
