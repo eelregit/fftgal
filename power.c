@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <assert.h>
 #include <math.h>
 #include "power.h"
@@ -54,20 +55,19 @@ void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
 }
 
 
-int Pl(fftgal_t *fg, double dK, double los[3], double *K,
-        double *P0, double *P2, double *P4, double *P6, long int *N)
+int Pl(fftgal_t *fg, double dK, double los[3], char *output)
 {
     int Ng = fg->Ng;
     normalize(los);
     double dKinv = 1 / dK;
     double KF = 2 * M_PI / fg->L;
     int Nb = (int)floor(sqrt(3)*(Ng/2) * KF * dKinv) + 1;
-    K = (double *)malloc(sizeof(double) * Nb); assert(K!=NULL);
-    P0 = (double *)malloc(sizeof(double) * Nb); assert(P0!=NULL);
-    P2 = (double *)malloc(sizeof(double) * Nb); assert(P2!=NULL);
-    P4 = (double *)malloc(sizeof(double) * Nb); assert(P4!=NULL);
-    P6 = (double *)malloc(sizeof(double) * Nb); assert(P6!=NULL);
-    N = (long int *)malloc(sizeof(long int) * Nb); assert(N!=NULL);
+    double *K = (double *)malloc(sizeof(double) * Nb); assert(K!=NULL);
+    double *P0 = (double *)malloc(sizeof(double) * Nb); assert(P0!=NULL);
+    double *P2 = (double *)malloc(sizeof(double) * Nb); assert(P2!=NULL);
+    double *P4 = (double *)malloc(sizeof(double) * Nb); assert(P4!=NULL);
+    double *P6 = (double *)malloc(sizeof(double) * Nb); assert(P6!=NULL);
+    long int *N = (long int *)malloc(sizeof(long int) * Nb); assert(N!=NULL);
     for(int b=0; b<Nb; ++b){
         K[b] = P0[b] = P2[b] = P4[b] = P6[b] = 0.;
         N[b] = 0;
@@ -111,6 +111,21 @@ int Pl(fftgal_t *fg, double dK, double los[3], double *K,
         Ntot += N[b];
     }
     assert(Ntot == Ng*Ng*Ng-1);
+
+    FILE *fp = fopen(output, "w"); assert(fp!=NULL);
+    fprintf(fp, "# Nb Ng Np3 L\n");
+    fprintf(fp, "%d %d %lld %f\n", Nb, Ng, fg->Np3, fg->L);
+    fprintf(fp, "# K P0 P2 P4 P6 N\n");
+    for(int b=0; b<Nb; ++b)
+        fprintf(fp, "%f %f %f %f %f %ld\n", K[b], P0[b], P2[b], P4[b], P6[b], N[b]);
+    fclose(fp);
+
+    free(K);
+    free(P0);
+    free(P2);
+    free(P4);
+    free(P6);
+    free(N);
 
     return Nb;
 }

@@ -13,5 +13,4 @@ void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
 
 /* multipoles, return number of bins
  * Pl all proportional to P0 when los[]={0,0,0} */
-int Pl(fftgal_t *fg, double dK, double los[3], double *K,
-        double *P0, double *P2, double *P4, double *P6, long int *N);
+int Pl(fftgal_t *fg, double dK, double los[3], char *output);
