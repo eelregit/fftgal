@@ -5,11 +5,11 @@
 #include "power.h"
 
 
-double pow2(double x)
+static double pow2(double x)
 {
     return x*x;
 }
-double pow3(double x)
+static double pow3(double x)
 {
     return x*x*x;
 }
