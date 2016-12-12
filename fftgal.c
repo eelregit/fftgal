@@ -54,7 +54,7 @@ fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
             ret = fftw_export_wisdom_to_filename(wisdom); assert(ret);
             fprintf(stderr, "wisdom exported to %s\n", wisdom);
             time(&t1);
-            fprintf(stderr, "%.3f sec to FFTW_MEASURE a %d^3 grid\n", difftime(t1, t0), Ng);
+            fprintf(stderr, "%.0f sec to FFTW_MEASURE a %d^3 grid\n", difftime(t1, t0), Ng);
         }
     }
 
@@ -107,7 +107,7 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
         self->f[g] *= Ng3perNp3;
     }
     time(&t1);
-    fprintf(stderr, "%.3f sec to paint %lld particles to %d^3 grid\n",
+    fprintf(stderr, "%.0f sec to paint %lld particles to %d^3 grid\n",
             difftime(t1, t0), Np3, Ng);
 }
 
@@ -122,7 +122,7 @@ void fftgal_fx2fk(fftgal_t *self)
         self->f[g] *= H3;
     }
     time(&t1);
-    fprintf(stderr, "%.3f sec to FFT f(x) to f(k) on a %d^3 grid\n",
+    fprintf(stderr, "%.0f sec to FFT f(x) to f(k) on a %d^3 grid\n",
             difftime(t1, t0), self->Ng);
 }
 
@@ -148,7 +148,7 @@ void fftgal_deconv(fftgal_t *self)
                 F(self,i,j,2*k+1) *= Winv;
             }
     time(&t1);
-    fprintf(stderr, "%.3f sec to deconvolve paintbrush on a %d^3 grid\n",
+    fprintf(stderr, "%.0f sec to deconvolve paintbrush on a %d^3 grid\n",
             difftime(t1, t0), Ng);
     free(winv);
 }
@@ -185,7 +185,7 @@ void fftgal_fk2fx(fftgal_t *self)
     for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] *= L3inv;
     }
-    fprintf(stderr, "%.3f sec to FFT f(k) to f(x) on a %d^3 grid\n",
+    fprintf(stderr, "%.0f sec to FFT f(k) to f(x) on a %d^3 grid\n",
             difftime(t1, t0), self->Ng);
 }
 
