@@ -2,17 +2,15 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
-#include <fenv.h>
 
 
 void pbc(double *x, double *y, double *z, long long int Np3, double L)
 {
     double Linv = 1 / L;
-    int ret = fesetround(FE_DOWNWARD); assert(!ret);
     for(long long int p=0; p<Np3; ++p){
-        x[p] -= L * nearbyint(x[p] * Linv);
-        y[p] -= L * nearbyint(y[p] * Linv);
-        z[p] -= L * nearbyint(z[p] * Linv);
+        x[p] -= L * floor(x[p] * Linv);
+        y[p] -= L * floor(y[p] * Linv);
+        z[p] -= L * floor(z[p] * Linv);
     }
 }
 
