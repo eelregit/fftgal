@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     fftgal_x2fk(fg, xsb, ysb, zsb, Np3);
 
     double dK = 0.02;
-    Pl(fg, dK, los, "testout.txt");
+    Pl(fg, dK, los, "letssee.txt");
 
     return 0;
 }

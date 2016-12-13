@@ -76,15 +76,12 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
         K[b] = P0[b] = P2[b] = P4[b] = P6[b] = 0.;
         N[b] = 0;
     }
-    for(int i=0; i<Ng; ++i)
-    {
+    for(int i=0; i<Ng; ++i){
         double Kvec[3];
         Kvec[0] = KF * remainder(i, Ng);
-        for(int j=0; j<Ng; ++j)
-        {
+        for(int j=0; j<Ng; ++j){
             Kvec[1] = KF * remainder(j, Ng);
-            for(int k=(i==0 && j==0); k<=Ng/2; ++k) /* skip Kvec[]={0,0,0} */
-            {
+            for(int k=(i==0 && j==0); k<=Ng/2; ++k){ /* skip Kvec[]={0,0,0} */
                 Kvec[2] = KF * k;
                 double Kamp = amp(Kvec);
                 int b = (int)floor(Kamp * dKinv);
@@ -104,8 +101,7 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
     }
 
     long int Ntot = 0;
-    for(int b=0; b<Nb; ++b)
-    {
+    for(int b=0; b<Nb; ++b){
         double V = pow3(fg->L);
         K[b] /= N[b];
         P0[b] /= V * N[b];
