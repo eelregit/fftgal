@@ -163,18 +163,18 @@ void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int 
     fprintf(stderr, "fftgal_x2fk() interlacing with half-grid offset\n");
     fftgal_x2fx(self, x, y, z, Np3, 0.5);
     fftgal_fx2fk(self);
-    fftgal_deconv(self);
 
     double *fdual = fftgal_copyf(self);
 
     fprintf(stderr, "fftgal_x2fk() interlacing with zero offset\n");
     fftgal_x2fx(self, x, y, z, Np3, 0.);
     fftgal_fx2fk(self);
-    fftgal_deconv(self);
 
     for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] = 0.5 * (fdual[g] + self->f[g]);
     }
+    fftgal_deconv(self);
+
     free(fdual);
 }
 
