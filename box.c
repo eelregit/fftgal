@@ -38,7 +38,7 @@ long long int subbox(double *x, double *y, double *z, long long int Np3, double 
     double percentage = 100.*Np3sb/Np3;
     fprintf(stderr, "subbox() took %lld/%lld particles (%.2f%%)\n",
             Np3sb, Np3, percentage);
-    if(percentage > 99.)
+    if(Np3sb!=Np3 && percentage>99.)
         fprintf(stderr, "warning: subbox() thinks something is leaking\n");
     return Np3sb;
 }
