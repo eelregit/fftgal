@@ -4,7 +4,6 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
-#include <fenv.h>
 #include "fftgal.h"
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
@@ -78,14 +77,13 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
     int Ng = self->Ng;
     double Hinv = self->Ng / self->L;
     offset -= 0.5;
-    int ret = fesetround(FE_DOWNWARD); assert(!ret);
     for(long long int p=0; p<Np3; ++p){
         double xp = x[p] * Hinv + offset;
         double yp = y[p] * Hinv + offset;
         double zp = z[p] * Hinv + offset;
-        int xint = rint(xp);
-        int yint = rint(yp);
-        int zint = rint(zp);
+        int xint = (int)floor(xp);
+        int yint = (int)floor(yp);
+        int zint = (int)floor(zp);
         double dx = xp - xint;
         double dy = yp - yint;
         double dz = zp - zint;
