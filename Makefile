@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -I$(FFTW_INC) -L$(FFTW_DIR)
+CFLAGS = -Wall -I$(FFTW_INC) -L$(FFTW_DIR) -O2
 
 .PHONY: clean
 
