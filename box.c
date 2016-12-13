@@ -35,7 +35,7 @@ long long int subbox(double *x, double *y, double *z, long long int Np3, double 
     *xsb = (double *)realloc(*xsb, Np3sb * sizeof(double)); assert(*xsb!=NULL);
     *ysb = (double *)realloc(*ysb, Np3sb * sizeof(double)); assert(*ysb!=NULL);
     *zsb = (double *)realloc(*zsb, Np3sb * sizeof(double)); assert(*zsb!=NULL);
-    fprintf(stderr, "subbox() took %lld particles (%.2f%%) out of %lld\n",
-            Np3sb, 100.*Np3sb/Np3, Np3);
+    fprintf(stderr, "subbox() took %lld/%lld particles (%.2f%%)\n",
+            Np3sb, Np3, 100.*Np3sb/Np3);
     return Np3sb;
 }

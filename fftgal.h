@@ -33,7 +33,7 @@ void fftgal_fx2fk(fftgal_t *self);
 void fftgal_deconv(fftgal_t *self);
 
 
-/* simple interface combining painting, FFT, and deconvolution with interlacing */
+/* simple interface to do interlaced painting+FFT, and average before deconvolve */
 void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int Np3);
 
 
