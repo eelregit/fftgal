@@ -1,10 +1,10 @@
 #include "fftgal.h"
 
 /* under global plane-parallel approximation, move particles along some LOS
- * x, y, z, xd, yd, zd in [Mpc/h]
- * vx, vy, vz in [km/s]
- * the conformal Hubble a*H = a*H0*E(a), H0=100[h km/s/Mpc]
- * x, y, z in [0, L]^3 but xd, yd, zd may not
+ * x, y, z, xd, yd, zd are in [Mpc/h]
+ * vx, vy, vz are in [km/s]
+ * conformal Hubble a*H = a*H0*E(a), H0=100[h km/s/Mpc]
+ * if x, y, z are in [0, L]^3, xd, yd, zd may not
  * los[] doesn't have to be normalized
  * xd, yd, zd are allocated, remember to free them
  */

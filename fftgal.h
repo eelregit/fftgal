@@ -1,7 +1,7 @@
 #ifndef FFTGAL_H
 #define FFTGAL_H
 
-/* 3D cubic in-place two-way FFT from N-body particles painted with PCS,
+/* 3D cubic in-place two-way FFT from galaxies/particles painted with PCS,
  * providing interlacing interface, see Sefusatti et al. 2016
  */
 #include <fftw3.h>
