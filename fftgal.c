@@ -80,9 +80,9 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
     offset -= 0.5;
     int ret = fesetround(FE_DOWNWARD); assert(!ret);
     for(long long int p=0; p<Np3; ++p){
-        double xp = fma(x[p], Hinv, offset);
-        double yp = fma(y[p], Hinv, offset);
-        double zp = fma(z[p], Hinv, offset);
+        double xp = x[p] * Hinv + offset;
+        double yp = y[p] * Hinv + offset;
+        double zp = z[p] * Hinv + offset;
         int xint = rint(xp);
         int yint = rint(yp);
         int zint = rint(zp);
@@ -95,12 +95,12 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
         int i[4] = {(xint - 1 + Ng) % Ng, xint, (xint + 1) % Ng, (xint + 2) % Ng};
         int j[4] = {(yint - 1 + Ng) % Ng, yint, (yint + 1) % Ng, (yint + 2) % Ng};
         int k[4] = {(zint - 1 + Ng) % Ng, zint, (zint + 1) % Ng, (zint + 2) % Ng};
-        double wx[4] = {pow3(1 - dx) / 6, fma(fma(3, dx, -6), pow2(dx), 4) / 6,
-                    fma(fma(fma(-3, dx, 3), dx, 3), dx, 1) / 6, pow3(dx) / 6};
-        double wy[4] = {pow3(1 - dy) / 6, fma(fma(3, dy, -6), pow2(dy), 4) / 6,
-                    fma(fma(fma(-3, dy, 3), dy, 3), dy, 1) / 6, pow3(dy) / 6};
-        double wz[4] = {pow3(1 - dz) / 6, fma(fma(3, dz, -6), pow2(dz), 4) / 6,
-                    fma(fma(fma(-3, dz, 3), dz, 3), dz, 1) / 6, pow3(dz) / 6};
+        double wx[4] = {pow3(1 - dx) / 6, ((3*dx - 6)*pow2(dx) + 4) / 6,
+                    (((-3*dx + 3)*dx + 3)*dx + 1) / 6, pow3(dx) / 6};
+        double wy[4] = {pow3(1 - dy) / 6, ((3*dy - 6)*pow2(dy) + 4) / 6,
+                    (((-3*dy + 3)*dy + 3)*dy + 1) / 6, pow3(dy) / 6};
+        double wz[4] = {pow3(1 - dz) / 6, ((3*dz - 6)*pow2(dz) + 4) / 6,
+                    (((-3*dz + 3)*dz + 3)*dz + 1) / 6, pow3(dz) / 6};
         for(int ii=0; ii<4; ++ii)
             for(int jj=0; jj<4; ++jj)
                 for(int kk=0; kk<4; ++kk)

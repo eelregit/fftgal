@@ -88,16 +88,16 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
                 Kvec[2] = KF * k;
                 double Kamp = amp(Kvec);
                 int b = (int)floor(Kamp * dKinv);
+                int count = 1 + (2*k%Ng > 0);
                 double delta2 = pow2(F(fg,i,j,2*k)) + pow2(F(fg,i,j,2*k+1));
+                delta2 *= count;
                 double mu2 = pow2((Kvec[0]*loshat[0] + Kvec[1]*loshat[1] + Kvec[2]*loshat[2])
                         / Kamp);
-                int count = 1 + (2*k%Ng > 0);
                 K[b] += count * Kamp;
-                P0[b] += count * delta2;
-                P2[b] += count * delta2 * fma(1.5, mu2, -0.5);
-                P4[b] += count * delta2 * fma(fma(4.375, mu2, -3.75), mu2, 0.375);
-                P6[b] += count * delta2 *
-                    fma(fma(fma(14.4375, mu2, -19.6875), mu2, 6.5625), mu2, -0.3125);
+                P0[b] += delta2;
+                P2[b] += delta2 * (1.5*mu2 - 0.5);
+                P4[b] += delta2 * ((4.375*mu2 - 3.75)*mu2 + 0.375);
+                P6[b] += delta2 * (((14.4375*mu2 - 19.6875)*mu2 + 6.5625)*mu2 - 0.3125);
                 N[b] += count;
             }
         }
