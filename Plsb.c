@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
     for(int ilos=0; ilos<2; ++ilos)
     for(int jlos=0; jlos<2; ++jlos)
     for(int klos=0; klos<2-(ilos==1 && jlos==1); ++klos){ /* skip los[] = {1,1,1} */
+        fprintf(stderr, "================== los div ==================\n");
         if(xd!=NULL) free(xd);
         if(yd!=NULL) free(yd);
         if(zd!=NULL) free(zd);
@@ -61,6 +62,7 @@ int main(int argc, char *argv[])
         for(int isb=0; isb<Nsb; ++isb)
         for(int jsb=0; jsb<Nsb; ++jsb)
         for(int ksb=0; ksb<Nsb; ++ksb){
+            fprintf(stderr, "---------------- sub-box div ----------------\n");
             if(xsb!=NULL) free(xsb);
             if(ysb!=NULL) free(ysb);
             if(zsb!=NULL) free(zsb);
