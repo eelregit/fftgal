@@ -122,7 +122,7 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
             Nb, Ng, fg->Np3, fg->L, dK, los[0], los[1], los[2]);
     fprintf(fp, "# K P0 P2 P4 P6 N\n");
     for(int b=0; b<Nb; ++b)
-        fprintf(fp, "%f %f %f %f %f %ld\n", K[b], P0[b], P2[b], P4[b], P6[b], N[b]);
+        fprintf(fp, "%e %e % e % e % e %ld\n", K[b], P0[b], P2[b], P4[b], P6[b], N[b]);
     fclose(fp);
     fprintf(stderr, "Pl() wrote to %s\n", output);
 
