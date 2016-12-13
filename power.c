@@ -22,21 +22,21 @@ double amp(double x[3])
     return sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
 }
 
-int normalize(double x[3])
+double *hat(double los[3])
 {
-    double xamp = amp(x);
-    if(xamp > 1e-7){
-        x[0] /= xamp;
-        x[1] /= xamp;
-        x[2] /= xamp;
-        return 1;
+    static double loshat[3];
+    double losamp = amp(los);
+    if(losamp > 1e-7){
+        loshat[0] = los[0] / losamp;
+        loshat[1] = los[1] / losamp;
+        loshat[2] = los[2] / losamp;
     }
     else{
-        x[0] = 0.;
-        x[1] = 0.;
-        x[2] = 0.;
-        return 0;
+        loshat[0] = 0.;
+        loshat[1] = 0.;
+        loshat[2] = 0.;
     }
+    return loshat;
 }
 
 
@@ -47,13 +47,13 @@ void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
     *xd = (double *)malloc(Np3 * sizeof(double)); assert(*xd!=NULL);
     *yd = (double *)malloc(Np3 * sizeof(double)); assert(*yd!=NULL);
     *zd = (double *)malloc(Np3 * sizeof(double)); assert(*zd!=NULL);
-    normalize(los);
+    double *loshat = hat(los);
     double aHinv = 1 / aH;
     for(long long int p=0; p<Np3; ++p){
-        double vdotlos = los[0]*vx[p] + los[1]*vy[p] + los[2]*vz[p];
-        (*xd)[p] = x[p] + aHinv * vdotlos * los[0];
-        (*yd)[p] = y[p] + aHinv * vdotlos * los[1];
-        (*zd)[p] = z[p] + aHinv * vdotlos * los[2];
+        double vdotlos = loshat[0]*vx[p] + loshat[1]*vy[p] + loshat[2]*vz[p];
+        (*xd)[p] = x[p] + aHinv * vdotlos * loshat[0];
+        (*yd)[p] = y[p] + aHinv * vdotlos * loshat[1];
+        (*zd)[p] = z[p] + aHinv * vdotlos * loshat[2];
     }
     fprintf(stderr, "rsd() %lld particles\n", Np3);
 }
@@ -62,7 +62,7 @@ void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
 int Pl(fftgal_t *fg, double dK, double los[3], char *output)
 {
     int Ng = fg->Ng;
-    normalize(los);
+    double *loshat = hat(los);
     double dKinv = 1 / dK;
     double KF = 2 * M_PI / fg->L;
     int Nb = (int)floor(sqrt(3)*(Ng/2) * KF * dKinv) + 1;
@@ -83,15 +83,15 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
         for(int j=0; j<Ng; ++j)
         {
             Kvec[1] = KF * remainder(j, Ng);
-            for(int k=0; k<=Ng/2; ++k)
+            for(int k=(i==0 && j==0); k<=Ng/2; ++k) /* skip Kvec[]={0,0,0} */
             {
                 Kvec[2] = KF * k;
                 double Kamp = amp(Kvec);
                 int b = (int)floor(Kamp * dKinv);
                 double delta2 = pow2(F(fg,i,j,2*k)) + pow2(F(fg,i,j,2*k+1));
-                normalize(Kvec);
-                double mu2 = pow2(Kvec[0]*los[0] + Kvec[1]*los[1] + Kvec[2]*los[2]);
-                int count = (1 + (2*k%Ng > 0)) * (i+j+k > 0);
+                double mu2 = pow2((Kvec[0]*loshat[0] + Kvec[1]*loshat[1] + Kvec[2]*loshat[2])
+                        / Kamp);
+                int count = 1 + (2*k%Ng > 0);
                 K[b] += count * Kamp;
                 P0[b] += count * delta2;
                 P2[b] += count * delta2 * fma(1.5, mu2, 0.5);
@@ -117,8 +117,9 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
     assert(Ntot == Ng*Ng*Ng-1);
 
     FILE *fp = fopen(output, "w"); assert(fp!=NULL);
-    fprintf(fp, "# Nb Ng Np3 L\n");
-    fprintf(fp, "%d %d %lld %f\n", Nb, Ng, fg->Np3, fg->L);
+    fprintf(fp, "# Nb Ng Np3 L dK los[3]\n");
+    fprintf(fp, "%d %d %lld %f %f %f %f %f\n",
+            Nb, Ng, fg->Np3, fg->L, dK, los[0], los[1], los[2]);
     fprintf(fp, "# K P0 P2 P4 P6 N\n");
     for(int b=0; b<Nb; ++b)
         fprintf(fp, "%f %f %f %f %f %ld\n", K[b], P0[b], P2[b], P4[b], P6[b], N[b]);
