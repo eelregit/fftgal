@@ -94,7 +94,7 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
                 int count = 1 + (2*k%Ng > 0);
                 K[b] += count * Kamp;
                 P0[b] += count * delta2;
-                P2[b] += count * delta2 * fma(1.5, mu2, 0.5);
+                P2[b] += count * delta2 * fma(1.5, mu2, -0.5);
                 P4[b] += count * delta2 * fma(fma(4.375, mu2, -3.75), mu2, 0.375);
                 P6[b] += count * delta2 *
                     fma(fma(fma(14.4375, mu2, -19.6875), mu2, 6.5625), mu2, -0.3125);
