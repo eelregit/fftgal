@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <time.h>
 #include <math.h>
 #include "power.h"
 #ifndef M_PI
@@ -76,6 +77,8 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
         K[b] = P0[b] = P2[b] = P4[b] = P6[b] = 0.;
         N[b] = 0;
     }
+    time_t t0, t1;
+    time(&t0);
     for(int i=0; i<Ng; ++i){
         double Kvec[3];
         Kvec[0] = KF * remainder(i, Ng);
@@ -99,6 +102,8 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
             }
         }
     }
+    time(&t1);
+    fprintf(stderr, "Pl() %.0f sec to bin a %d^3 grid\n", difftime(t1, t0), Ng);
 
     long int Ntot = 0;
     for(int b=0; b<Nb; ++b){

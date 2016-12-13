@@ -39,14 +39,14 @@ fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
 
     time_t t0, t1;
     if(!strcmp(wisdom, "FFTW_ESTIMATE")){
-        fprintf(stderr, "using FFTW_ESTIMATE\n");
+        fprintf(stderr, "fftgal_init() using FFTW_ESTIMATE\n");
         self->fx2fk = fftw_plan_dft_r2c_3d(Ng, Ng, Ng, fx, fk, FFTW_ESTIMATE);
         self->fk2fx = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_ESTIMATE);
     }
     else{
         int ret = fftw_import_wisdom_from_filename(wisdom);
         if(ret){
-            fprintf(stderr, "wisdom imported from %s\n", wisdom);
+            fprintf(stderr, "fftgal_init() wisdom imported from %s\n", wisdom);
             self->fx2fk = fftw_plan_dft_r2c_3d(Ng, Ng, Ng, fx, fk, FFTW_ESTIMATE);
             self->fk2fx = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_ESTIMATE);
         }
@@ -55,9 +55,10 @@ fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
             self->fx2fk = fftw_plan_dft_r2c_3d(Ng, Ng, Ng, fx, fk, FFTW_MEASURE);
             self->fk2fx = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_MEASURE);
             ret = fftw_export_wisdom_to_filename(wisdom); assert(ret);
-            fprintf(stderr, "wisdom exported to %s\n", wisdom);
+            fprintf(stderr, "fftgal_init() wisdom exported to %s\n", wisdom);
             time(&t1);
-            fprintf(stderr, "%.0f sec to FFTW_MEASURE a %d^3 grid\n", difftime(t1, t0), Ng);
+            fprintf(stderr, "fftgal_init() %.0f sec to FFTW_MEASURE a %d^3 grid\n",
+                    difftime(t1, t0), Ng);
         }
     }
 
@@ -110,7 +111,7 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
         self->f[g] *= Ng3perNp3;
     }
     time(&t1);
-    fprintf(stderr, "%.0f sec to paint %lld particles to %d^3 grid\n",
+    fprintf(stderr, "fftgal_x2fx() %.0f sec to paint %lld particles to %d^3 grid\n",
             difftime(t1, t0), Np3, Ng);
 }
 
@@ -125,7 +126,7 @@ void fftgal_fx2fk(fftgal_t *self)
         self->f[g] *= H3;
     }
     time(&t1);
-    fprintf(stderr, "%.0f sec to FFT f(x) to f(k) on a %d^3 grid\n",
+    fprintf(stderr, "fftgal_fx2fk() %.0f sec to FFT f(x) to f(k) on a %d^3 grid\n",
             difftime(t1, t0), self->Ng);
 }
 
@@ -151,7 +152,7 @@ void fftgal_deconv(fftgal_t *self)
                 F(self,i,j,2*k+1) *= Winv;
             }
     time(&t1);
-    fprintf(stderr, "%.0f sec to deconvolve paintbrush on a %d^3 grid\n",
+    fprintf(stderr, "fftgal_deconv() %.0f sec to deconvolve paintbrush on a %d^3 grid\n",
             difftime(t1, t0), Ng);
     free(winv);
 }
@@ -159,14 +160,14 @@ void fftgal_deconv(fftgal_t *self)
 
 void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int Np3)
 {
-    fprintf(stderr, "interlacing with half-grid offset\n");
+    fprintf(stderr, "fftgal_x2fk() interlacing with half-grid offset\n");
     fftgal_x2fx(self, x, y, z, Np3, 0.5);
     fftgal_fx2fk(self);
     fftgal_deconv(self);
 
     double *fdual = fftgal_copyf(self);
 
-    fprintf(stderr, "interlacing with zero offset\n");
+    fprintf(stderr, "fftgal_x2fk() interlacing with zero offset\n");
     fftgal_x2fx(self, x, y, z, Np3, 0.);
     fftgal_fx2fk(self);
     fftgal_deconv(self);
@@ -188,7 +189,7 @@ void fftgal_fk2fx(fftgal_t *self)
     for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] *= L3inv;
     }
-    fprintf(stderr, "%.0f sec to FFT f(k) to f(x) on a %d^3 grid\n",
+    fprintf(stderr, "fftgal_fk2fx() %.0f sec to FFT f(k) to f(x) on a %d^3 grid\n",
             difftime(t1, t0), self->Ng);
 }
 
