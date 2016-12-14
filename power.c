@@ -50,17 +50,15 @@ void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
     *zd = (double *)malloc(Np3 * sizeof(double)); assert(*zd!=NULL);
     double *loshat = hat(los);
     double aHinv = 1 / aH;
-    time_t t0, t1;
-    time(&t0);
+    clock_t t = clock();
     for(long long int p=0; p<Np3; ++p){
         double vdotlos = loshat[0]*vx[p] + loshat[1]*vy[p] + loshat[2]*vz[p];
         (*xd)[p] = x[p] + aHinv * vdotlos * loshat[0];
         (*yd)[p] = y[p] + aHinv * vdotlos * loshat[1];
         (*zd)[p] = z[p] + aHinv * vdotlos * loshat[2];
     }
-    time(&t1);
-    fprintf(stderr, "rsd() %.0f sec to kick %lld particles along los[]={%.2f,%.2f,%.2f}\n",
-            difftime(t1, t0), Np3, los[0], los[1], los[2]);
+    fprintf(stderr, "rsd() %.3f sec to kick %lld particles along los[]={%.2f,%.2f,%.2f}\n",
+            (double)(clock()-t)/CLOCKS_PER_SEC, Np3, los[0], los[1], los[2]);
 }
 
 
@@ -81,8 +79,7 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
         K[b] = P0[b] = P2[b] = P4[b] = P6[b] = 0.;
         N[b] = 0;
     }
-    time_t t0, t1;
-    time(&t0);
+    clock_t t = clock();
     for(int i=0; i<Ng; ++i){
         double Kvec[3];
         Kvec[0] = KF * remainder(i, Ng);
@@ -106,8 +103,8 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
             }
         }
     }
-    time(&t1);
-    fprintf(stderr, "Pl() %.0f sec to bin a %d^3 grid\n", difftime(t1, t0), Ng);
+    fprintf(stderr, "Pl() %.3f sec to bin a %d^3 grid\n",
+            (double)(clock()-t)/CLOCKS_PER_SEC, Ng);
 
     long int Ntot = 0;
     for(int b=0; b<Nb; ++b){

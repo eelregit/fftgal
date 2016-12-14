@@ -36,7 +36,6 @@ fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
     fftw_complex *fk = (fftw_complex *)fx;
     self->f = fx;
 
-    time_t t0, t1;
     if(!strcmp(wisdom, "FFTW_ESTIMATE")){
         fprintf(stderr, "fftgal_init() using FFTW_ESTIMATE\n");
         self->fx2fk = fftw_plan_dft_r2c_3d(Ng, Ng, Ng, fx, fk, FFTW_ESTIMATE);
@@ -45,19 +44,18 @@ fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
     else{
         int ret = fftw_import_wisdom_from_filename(wisdom);
         if(ret){
-            fprintf(stderr, "fftgal_init() wisdom imported from %s\n", wisdom);
+            fprintf(stderr, "fftgal_init() imported wisdom from %s\n", wisdom);
             self->fx2fk = fftw_plan_dft_r2c_3d(Ng, Ng, Ng, fx, fk, FFTW_ESTIMATE);
             self->fk2fx = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_ESTIMATE);
         }
         else{
-            time(&t0);
+            clock_t t = clock();
             self->fx2fk = fftw_plan_dft_r2c_3d(Ng, Ng, Ng, fx, fk, FFTW_MEASURE);
             self->fk2fx = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_MEASURE);
             ret = fftw_export_wisdom_to_filename(wisdom); assert(ret);
-            fprintf(stderr, "fftgal_init() wisdom exported to %s\n", wisdom);
-            time(&t1);
-            fprintf(stderr, "fftgal_init() %.0f sec to FFTW_MEASURE a %d^3 grid\n",
-                    difftime(t1, t0), Ng);
+            fprintf(stderr, "fftgal_init() exported wisdom to %s\n", wisdom);
+            fprintf(stderr, "fftgal_init() %.3f sec to FFTW_MEASURE a %d^3 grid\n",
+                    (double)(clock()-t)/CLOCKS_PER_SEC, Ng);
         }
     }
 
@@ -69,8 +67,7 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
         long long int Np3, double offset)
 {
     self->Np3 = Np3;
-    time_t t0, t1;
-    time(&t0);
+    clock_t t = clock();
     for(long int g=0; g<self->Ng3_pad; ++g){ /* must plan before initialization */
         self->f[g] = 0.;
     }
@@ -108,24 +105,21 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
     for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] *= Ng3perNp3;
     }
-    time(&t1);
-    fprintf(stderr, "fftgal_x2fx() %.0f sec to paint %lld particles to %d^3 grid\n",
-            difftime(t1, t0), Np3, Ng);
+    fprintf(stderr, "fftgal_x2fx() %.3f sec to paint %lld particles to %d^3 grid\n",
+            (double)(clock()-t)/CLOCKS_PER_SEC, Np3, Ng);
 }
 
 
 void fftgal_fx2fk(fftgal_t *self)
 {
-    time_t t0, t1;
-    time(&t0);
+    clock_t t = clock();
     fftw_execute(self->fx2fk);
     double H3 = pow3(self->L / self->Ng);
     for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] *= H3;
     }
-    time(&t1);
-    fprintf(stderr, "fftgal_fx2fk() %.0f sec to FFT f(x) to f(k) on a %d^3 grid\n",
-            difftime(t1, t0), self->Ng);
+    fprintf(stderr, "fftgal_fx2fk() %.3f sec to FFT f(x) to f(k) on a %d^3 grid\n",
+            (double)(clock()-t)/CLOCKS_PER_SEC, self->Ng);
 }
 
 
@@ -140,8 +134,7 @@ void fftgal_deconv(fftgal_t *self)
         winv[i] = pow2(pow2(arg / sin(arg)));
         winv[Ng-i] = winv[i];
     }
-    time_t t0, t1;
-    time(&t0);
+    clock_t t = clock();
     for(int i=0; i<Ng; ++i)
         for(int j=0; j<Ng; ++j)
             for(int k=0; k<=Ng_half; ++k){
@@ -149,9 +142,8 @@ void fftgal_deconv(fftgal_t *self)
                 F(self,i,j,2*k) *= Winv;
                 F(self,i,j,2*k+1) *= Winv;
             }
-    time(&t1);
-    fprintf(stderr, "fftgal_deconv() %.0f sec to deconvolve paintbrush on a %d^3 grid\n",
-            difftime(t1, t0), Ng);
+    fprintf(stderr, "fftgal_deconv() %.3f sec to deconvolve paintbrush on a %d^3 grid\n",
+            (double)(clock()-t)/CLOCKS_PER_SEC, Ng);
     free(winv);
 }
 
@@ -179,16 +171,14 @@ void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int 
 
 void fftgal_fk2fx(fftgal_t *self)
 {
-    time_t t0, t1;
-    time(&t0);
+    clock_t t = clock();
     fftw_execute(self->fk2fx);
-    time(&t1);
     double L3inv = 1 / pow3(self->L);
     for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] *= L3inv;
     }
-    fprintf(stderr, "fftgal_fk2fx() %.0f sec to FFT f(k) to f(x) on a %d^3 grid\n",
-            difftime(t1, t0), self->Ng);
+    fprintf(stderr, "fftgal_fk2fx() %.3f sec to FFT f(k) to f(x) on a %d^3 grid\n",
+            (double)(clock()-t)/CLOCKS_PER_SEC, self->Ng);
 }
 
 

@@ -7,7 +7,7 @@
 #include <fftw3.h>
 
 
-#define F(self,i,j,k) self->f[((long int)(k) + self->Ng_pad * ((long int)(j) + self->Ng * (long int)(i)))]
+#define F(self,i,j,k) (self->f[((long int)(k) + self->Ng_pad * ((long int)(j) + self->Ng * (long int)(i)))])
 
 
 typedef struct {

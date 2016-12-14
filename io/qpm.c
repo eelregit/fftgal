@@ -15,8 +15,7 @@ void qpm_cubic_mocks_read(char *catalog, int Np3, double **x, double **y, double
     *vz = (double *)malloc(Np3 * sizeof(double)); assert(*vz!=NULL);
     *M = (double *)malloc(Np3 * sizeof(double)); assert(*M!=NULL);
     *issat = (int *)malloc(Np3 * sizeof(int)); assert(*issat!=NULL);
-    time_t t0, t1;
-    time(&t0);
+    clock_t t = clock();
     FILE *fp = fopen(catalog, "r"); assert(fp!=NULL);
     for(int i=0; i<Np3; ++i){
         int ret = fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf %d %*d\n",
@@ -24,7 +23,6 @@ void qpm_cubic_mocks_read(char *catalog, int Np3, double **x, double **y, double
         assert(ret==8);
     }
     fclose(fp);
-    time(&t1);
-    fprintf(stderr, "qpm_cubic_mocks_read() %.0f sec to load %d galaxies\n",
-            difftime(t1, t0), Np3);
+    fprintf(stderr, "qpm_cubic_mocks_read() %.3f sec to load %d galaxies\n",
+            (double)(clock()-t)/CLOCKS_PER_SEC, Np3);
 }
