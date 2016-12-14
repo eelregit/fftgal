@@ -20,8 +20,8 @@ double H(double a)
 
 int main(int argc, char *argv[])
 {
-    if(argc!=10){
-        fprintf(stderr, "Usage: %s Ng L wisdom Nsb catdir a catid Np3 outdir\n", argv[0]);
+    if(argc!=9){
+        fprintf(stderr, "Usage: %s Ng L wisdom Nsb catdir a catid outdir\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
@@ -31,8 +31,7 @@ int main(int argc, char *argv[])
     char *catdir = argv[5];
     double a = atof(argv[6]); assert(a>0. && a<1.1);
     int catid = atoi(argv[7]); assert(catid>=1 && catid<=1000);
-    int Np3 = atoi(argv[8]); assert(Np3>0 && Np3<=(1<<24));
-    char *outdir = argv[9];
+    char *outdir = argv[8];
 
     const int maxlen = 1024;
     char catalog[maxlen];
@@ -40,7 +39,7 @@ int main(int argc, char *argv[])
     assert(ret>=0 && ret<maxlen);
     double *x, *y, *z, *vx, *vy, *vz, *M;
     int *issat;
-    qpm_cubic_mocks_read(catalog, Np3, &x, &y, &z, &vx, &vy, &vz, &M, &issat);
+    int Np3 = qpm_cubic_mocks_read(catalog, &x, &y, &z, &vx, &vy, &vz, &M, &issat);
 
     double Lsb = L / Nsb;
     fftgal_t *fg = fftgal_init(Ng, Lsb, wisdom);
@@ -59,6 +58,7 @@ int main(int argc, char *argv[])
         rsd(x, y, z, vx, vy, vz, Np3, &xd, &yd, &zd, los, aH);
         pbc(xd, yd, zd, Np3, L);
 
+        int Np3sbtot = 0;
         for(int isb=0; isb<Nsb; ++isb)
         for(int jsb=0; jsb<Nsb; ++jsb)
         for(int ksb=0; ksb<Nsb; ++ksb){
@@ -70,6 +70,7 @@ int main(int argc, char *argv[])
                                 jsb*Lsb, (jsb+1)*Lsb,
                                 ksb*Lsb, (ksb+1)*Lsb};
             int Np3sb = subbox(xd, yd, zd, Np3, xyzlim, &xsb, &ysb, &zsb, Np3);
+            Np3sbtot += Np3sb;
 
             fftgal_x2fk(fg, xsb, ysb, zsb, Np3sb);
 
@@ -80,6 +81,7 @@ int main(int argc, char *argv[])
             double dK = 0.02;
             Pl(fg, dK, los, outfile);
         }
+        assert(Np3sbtot==Np3);
     }
 
     free(x); free(y); free(z); free(vx); free(vy); free(vz); free(M); free(issat);

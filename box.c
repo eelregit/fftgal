@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <time.h>
 #include <math.h>
+#include "box.h"
 
 
 void pbc(double *x, double *y, double *z, long long int Np3, double L)
@@ -33,7 +34,7 @@ long long int subbox(double *x, double *y, double *z, long long int Np3, double 
             (*xsb)[Np3sb] = x[p];
             (*ysb)[Np3sb] = y[p];
             (*zsb)[Np3sb] = z[p];
-            Np3sb ++;
+            ++ Np3sb;
         }
     assert(p == Np3);
     *xsb = (double *)realloc(*xsb, Np3sb * sizeof(double)); assert(*xsb!=NULL);
