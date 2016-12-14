@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
             ret = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_los%d%d%d_sb%d%d%d.txt",
                     outdir, a, catid, ilos, jlos, klos, isb, jsb, ksb);
             assert(ret>=0 && ret<maxlen);
-            double dK = 0.02;
+            double dK = 0.01;
             Pl(fg, dK, los, outfile);
         }
         assert(Np3sbtot==Np3);
