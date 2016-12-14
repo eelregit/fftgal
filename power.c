@@ -57,7 +57,7 @@ void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
         (*yd)[p] = y[p] + aHinv * vdotlos * loshat[1];
         (*zd)[p] = z[p] + aHinv * vdotlos * loshat[2];
     }
-    fprintf(stderr, "rsd() %.3f sec to kick %lld particles along los[]={%.2f,%.2f,%.2f}\n",
+    fprintf(stderr, "rsd() %.3fs to kick %lld particles along los[]={%.2f,%.2f,%.2f}\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Np3, los[0], los[1], los[2]);
 }
 
@@ -103,7 +103,7 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
             }
         }
     }
-    fprintf(stderr, "Pl() %.3f sec to bin a %d^3 grid\n",
+    fprintf(stderr, "Pl() %.3fs to bin a %d^3 grid\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Ng);
 
     long int Ntot = 0;

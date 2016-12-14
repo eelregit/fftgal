@@ -54,7 +54,7 @@ fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
             self->fk2fx = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_MEASURE);
             ret = fftw_export_wisdom_to_filename(wisdom); assert(ret);
             fprintf(stderr, "fftgal_init() exported wisdom to %s\n", wisdom);
-            fprintf(stderr, "fftgal_init() %.3f sec to FFTW_MEASURE a %d^3 grid\n",
+            fprintf(stderr, "fftgal_init() %.3fs to FFTW_MEASURE a %d^3 grid\n",
                     (double)(clock()-t)/CLOCKS_PER_SEC, Ng);
         }
     }
@@ -105,7 +105,7 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
     for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] *= Ng3perNp3;
     }
-    fprintf(stderr, "fftgal_x2fx() %.3f sec to paint %lld particles to %d^3 grid\n",
+    fprintf(stderr, "fftgal_x2fx() %.3fs to paint %lld particles to %d^3 grid\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Np3, Ng);
 }
 
@@ -118,7 +118,7 @@ void fftgal_fx2fk(fftgal_t *self)
     for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] *= H3;
     }
-    fprintf(stderr, "fftgal_fx2fk() %.3f sec to FFT f(x) to f(k) on a %d^3 grid\n",
+    fprintf(stderr, "fftgal_fx2fk() %.3fs to FFT f(x) to f(k) on a %d^3 grid\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, self->Ng);
 }
 
@@ -142,7 +142,7 @@ void fftgal_deconv(fftgal_t *self)
                 F(self,i,j,2*k) *= Winv;
                 F(self,i,j,2*k+1) *= Winv;
             }
-    fprintf(stderr, "fftgal_deconv() %.3f sec to deconvolve paintbrush on a %d^3 grid\n",
+    fprintf(stderr, "fftgal_deconv() %.3fs to deconvolve paintbrush on a %d^3 grid\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Ng);
     free(winv);
 }
@@ -177,7 +177,7 @@ void fftgal_fk2fx(fftgal_t *self)
     for(long int g=0; g<self->Ng3_pad; ++g){
         self->f[g] *= L3inv;
     }
-    fprintf(stderr, "fftgal_fk2fx() %.3f sec to FFT f(k) to f(x) on a %d^3 grid\n",
+    fprintf(stderr, "fftgal_fk2fx() %.3fs to FFT f(k) to f(x) on a %d^3 grid\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, self->Ng);
 }
 
