@@ -41,7 +41,7 @@ long long int subbox(double *x, double *y, double *z, long long int Np3, double 
     *ysb = (double *)realloc(*ysb, Np3sb * sizeof(double)); assert(*ysb!=NULL);
     *zsb = (double *)realloc(*zsb, Np3sb * sizeof(double)); assert(*zsb!=NULL);
     double percentage = 100.*Np3sb/Np3;
-    fprintf(stderr, "subbox() %.3f to pick out %lld/%lld particles (%.2f%%)\n",
+    fprintf(stderr, "subbox() %.3f sec to pick out %lld/%lld particles (%.2f%%)\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Np3sb, Np3, percentage);
     if(Np3sb!=Np3 && percentage>99.)
         fprintf(stderr, "warning: subbox() thinks something is leaking\n");
