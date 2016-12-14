@@ -13,6 +13,7 @@ int qpm_cubic_mocks_read(char *catalog, double **x, double **y, double **z,
     while((ch=fgetc(fp)) != EOF)
         if(ch=='\n')
             ++ Np3;
+    rewind(fp);
     *x = (double *)malloc(Np3 * sizeof(double)); assert(*x!=NULL);
     *y = (double *)malloc(Np3 * sizeof(double)); assert(*y!=NULL);
     *z = (double *)malloc(Np3 * sizeof(double)); assert(*z!=NULL);
