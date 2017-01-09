@@ -41,8 +41,9 @@ void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int 
 void fftgal_fk2fx(fftgal_t *self);
 
 
-/* make a copy of f[] */
-double *fftgal_copyf(fftgal_t *self);
+/* export and import a copy of f[] */
+double *fftgal_exportf(fftgal_t *self);
+void fftgal_importf(fftgal_t *self, double *f_copy);
 
 
 /* save and read f[] from files */

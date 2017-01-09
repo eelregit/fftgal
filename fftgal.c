@@ -154,7 +154,7 @@ void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int 
     fftgal_x2fx(self, x, y, z, Np3, 0.5);
     fftgal_fx2fk(self);
 
-    double *fdual = fftgal_copyf(self);
+    double *fdual = fftgal_exportf(self);
 
     fprintf(stderr, "fftgal_x2fk() interlacing with zero offset\n");
     fftgal_x2fx(self, x, y, z, Np3, 0.);
@@ -182,12 +182,19 @@ void fftgal_fk2fx(fftgal_t *self)
 }
 
 
-double *fftgal_copyf(fftgal_t *self)
+double *fftgal_exportf(fftgal_t *self)
 {
     double *f_copy = (double *)malloc(self->Ng3_pad * sizeof(double));
     assert(f_copy!=NULL);
     memcpy(f_copy, self->f, self->Ng3_pad * sizeof(double));
     return f_copy;
+}
+
+
+void fftgal_importf(fftgal_t *self, double *f_copy)
+{
+    assert(f_copy!=NULL);
+    memcpy(self->f, f_copy, self->Ng3_pad * sizeof(double));
 }
 
 
