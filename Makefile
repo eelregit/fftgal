@@ -6,8 +6,11 @@ CFLAGS = -Wall -I$(FFTW_INC) -L$(FFTW_DIR) -O2
 Plsb: Plsb.c fftgal.c fftgal.h power.c power.h box.c box.h io/qpm.c io/qpm.h
 	$(CC) $(CFLAGS) Plsb.c fftgal.c power.c box.c io/qpm.c -lfftw3 -lm -o Plsb
 
+ssm: ssm.c fftgal.c fftgal.h io/qpm.c io/qpm.h
+	$(CC) $(CFLAGS) ssm.c fftgal.c io/qpm.c -lfftw3 -lm -o ssm
+
 test_octet: test_octet.c fftgal.c fftgal.h
 	$(CC) $(CFLAGS) test_octet.c fftgal.c -lfftw3 -lm -o test_octet
 
 clean:
-	rm -f Plsb test_octet
+	rm -f Plsb ssm test_octet
