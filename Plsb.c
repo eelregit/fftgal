@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
     double *x, *y, *z, *vx, *vy, *vz, *M;
     int *issat;
     int Np3 = qpm_cubic_mocks_read(catalog, &x, &y, &z, &vx, &vy, &vz, &M, &issat);
+    assert(Np3>0);
 
     double Lsb = L / Nsb;
     fftgal_t *fg = fftgal_init(Ng, Lsb, wisdom);
