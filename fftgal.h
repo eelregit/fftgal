@@ -51,6 +51,6 @@ void fftgal_readf(fftgal_t *self, char *filename);
 
 
 /* free fftgal */
-void fftgal_kill(fftgal_t *self);
+void fftgal_free(fftgal_t *self);
 
 #endif

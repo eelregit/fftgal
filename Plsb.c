@@ -87,6 +87,6 @@ int main(int argc, char *argv[])
     free(x); free(y); free(z); free(vx); free(vy); free(vz); free(M); free(issat);
     free(xd); free(yd); free(zd);
     free(xsb); free(ysb); free(zsb);
-    fftgal_kill(fg);
+    fftgal_free(fg);
     return 0;
 }

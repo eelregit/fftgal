@@ -39,6 +39,6 @@ int main()
     fprintf(stdout, "* error on octet->fx[1,1,0] = %e\n", err); assert(fabs(err) < eps);
 
     fprintf(stdout, "* test_octet PASSED on eps = %e\n", eps);
-    fftgal_kill(octet);
+    fftgal_free(octet);
     return 0;
 }

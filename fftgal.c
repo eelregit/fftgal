@@ -209,7 +209,7 @@ void fftgal_readf(fftgal_t *self, char *filename)
 }
 
 
-void fftgal_kill(fftgal_t *self)
+void fftgal_free(fftgal_t *self)
 {
     free(self->f);
     free(self);
