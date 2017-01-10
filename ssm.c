@@ -11,6 +11,9 @@
 #endif
 
 
+const double bias = 2.2;
+
+
 static double pow2(double x)
 {
     return x*x;
@@ -91,8 +94,8 @@ int main(int argc, char *argv[])
                     double ImW = Wpha[i+j+k][1] * Wamp3;
                     double Red = F(fg,i,j,2*k);
                     double Imd = F(fg,i,j,2*k+1);
-                    F(fg,i,j,2*k) = Legendre * (Red*ReW - Imd*ImW);
-                    F(fg,i,j,2*k+1) = Legendre * (Red*ImW + Imd*ReW);
+                    F(fg,i,j,2*k) = Legendre * (Red*ReW - Imd*ImW) / bias;
+                    F(fg,i,j,2*k+1) = Legendre * (Red*ImW + Imd*ReW) / bias;
                 }
             }
         }
