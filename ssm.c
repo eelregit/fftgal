@@ -1,4 +1,4 @@
-/* measure super-sample modes (mean and tide) from subboxes */
+/* measure super-sample modes from subboxes */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,7 +11,9 @@
 #endif
 
 
-const double bias = 2.2;
+/* use bias≠1 to rescale to matter overdensity if it's known,
+ * otherwise output is in tracer overdensity */
+const double bias = 1.;
 
 
 static double pow2(double x)
@@ -48,73 +50,76 @@ int main(int argc, char *argv[])
     fftgal_t *fg = fftgal_init(Ng, L, wisdom);
 
     double *fk_copy = NULL;
+    double Wamp[Ng], Wpha[3*Ng][2]; /* subbox smoothing */
+    Wamp[0] = 1.;
+    for(int i=1; i<Ng; ++i)
+        Wamp[i] = sin(M_PI * i / Nsb) / sin(M_PI * i / Ng) / Ngsb;
+    for(int i=0; i<3*Ng; ++i){
+        Wpha[i][0] = cos(M_PI * i * (Ngsb-1) / Ng);
+        Wpha[i][1] = sin(M_PI * i * (Ngsb-1) / Ng);
+    }
     for(int ilos=0; ilos<2; ++ilos)
     for(int jlos=0; jlos<2; ++jlos)
-    for(int klos=0; klos<2-(ilos==1 && jlos==1); ++klos){ /* skip los[] = {1,1,1} */
+    for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){ /* skip {0,0,0}, {1,1,1} */
         fprintf(stderr, "================== los div ==================\n");
         double losamp = sqrt(ilos*ilos + jlos*jlos + klos*klos);
         double loshat[3];
-        if(losamp > 1e-7){
-            loshat[0] = ilos / losamp;
-            loshat[1] = jlos / losamp;
-            loshat[2] = klos / losamp;
-        }
-        else
-            loshat[0] = loshat[1] = loshat[2] = 0.;
+        loshat[0] = ilos / losamp;
+        loshat[1] = jlos / losamp;
+        loshat[2] = klos / losamp;
 
-        if(fk_copy==NULL){
-            fftgal_x2fx(fg, x, y, z, Np3, 0.);
-            fftgal_fx2fk(fg);
-            fk_copy = fftgal_exportf(fg);
-        }
-        else
-            fftgal_importf(fg, fk_copy);
+        double DeltaL[3*Nsb*Nsb*Nsb];
+        for(int L_half=0; L_half<=2; ++L_half){
+            if(fk_copy==NULL){
+                fftgal_x2fx(fg, x, y, z, Np3, 0.);
+                fftgal_fx2fk(fg);
+                fk_copy = fftgal_exportf(fg);
+            }
+            else
+                fftgal_importf(fg, fk_copy);
 
-        double Wamp[Ng], Wpha[3*Ng][2]; /* subbox smoothing */
-        Wamp[0] = 1.;
-        for(int i=1; i<Ng; ++i)
-            Wamp[i] = sin(M_PI * i / Nsb) / sin(M_PI * i / Ng) / Ngsb;
-        for(int i=0; i<3*Ng; ++i){
-            Wpha[i][0] = cos(M_PI * i * (Ngsb-1) / Ng);
-            Wpha[i][1] = sin(M_PI * i * (Ngsb-1) / Ng);
-        }
-        fg->f[0] = 0.;
-        for(int i=0; i<Ng; ++i){
-            double Kvec[3];
-            Kvec[0] = remainder(i, Ng);
-            for(int j=0; j<Ng; ++j){
-                Kvec[1] = remainder(j, Ng);
-                for(int k=(i==0 && j==0); k<=Ng/2; ++k){ /* skip Kvec[]={0,0,0} */
-                    Kvec[2] = k;
-                    double mu2 = pow2(Kvec[0]*loshat[0] + Kvec[1]*loshat[1] + Kvec[2]*loshat[2])
-                            / (Kvec[0]*Kvec[0] + Kvec[1]*Kvec[1] + Kvec[2]*Kvec[2]);
-                    double Legendre = ilos+jlos+klos==0 ? 1. : 1.5*mu2-0.5;
-                    double Wamp3 = Wamp[i] * Wamp[j] * Wamp[k];
-                    double ReW = Wpha[i+j+k][0] * Wamp3;
-                    double ImW = Wpha[i+j+k][1] * Wamp3;
-                    double Red = F(fg,i,j,2*k);
-                    double Imd = F(fg,i,j,2*k+1);
-                    F(fg,i,j,2*k) = Legendre * (Red*ReW - Imd*ImW) / bias;
-                    F(fg,i,j,2*k+1) = Legendre * (Red*ImW + Imd*ReW) / bias;
+            fg->f[0] = 0.;
+            for(int i=0; i<Ng; ++i){
+                double Kvec[3];
+                Kvec[0] = remainder(i, Ng);
+                for(int j=0; j<Ng; ++j){
+                    Kvec[1] = remainder(j, Ng);
+                    for(int k=(i==0 && j==0); k<=Ng/2; ++k){ /* skip Kvec[]={0,0,0} */
+                        Kvec[2] = k;
+                        double mu2 = pow2(Kvec[0]*loshat[0] + Kvec[1]*loshat[1] + Kvec[2]*loshat[2])
+                                / (Kvec[0]*Kvec[0] + Kvec[1]*Kvec[1] + Kvec[2]*Kvec[2]);
+                        double Legendre[3] = {1., 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
+                        double Wamp3 = Wamp[i] * Wamp[j] * Wamp[k];
+                        double ReW = Wpha[i+j+k][0] * Wamp3;
+                        double ImW = Wpha[i+j+k][1] * Wamp3;
+                        double Red = F(fg,i,j,2*k);
+                        double Imd = F(fg,i,j,2*k+1);
+                        F(fg,i,j,2*k) = Legendre[L_half] * (Red*ReW - Imd*ImW) / bias;
+                        F(fg,i,j,2*k+1) = Legendre[L_half] * (Red*ImW + Imd*ReW) / bias;
+                    }
                 }
             }
-        }
 
-        fftgal_fk2fx(fg);
+            fftgal_fk2fx(fg);
+            for(int isb=0; isb<Nsb; ++isb)
+            for(int jsb=0; jsb<Nsb; ++jsb)
+            for(int ksb=0; ksb<Nsb; ++ksb)
+                DeltaL[((L_half*Nsb + isb)*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb);
+        }
 
         char outfile[maxlen];
         ret = snprintf(outfile, maxlen, "%s/a%.4f_%04d/ssm_los%d%d%d.txt",
                 outdir, a, catid, ilos, jlos, klos);
         assert(ret>=0 && ret<maxlen);
         FILE *fp = fopen(outfile, "w"); assert(fp!=NULL);
-        if(ilos+jlos+klos == 0)
-            fprintf(fp, "# isb jsb ksb Delta_0\n");
-        else
-            fprintf(fp, "# isb jsb ksb Delta_2\n");
+        fprintf(fp, "# ijk_sb Delta_0 Delta_2 Delta_4\n");
         for(int isb=0; isb<Nsb; ++isb)
         for(int jsb=0; jsb<Nsb; ++jsb)
         for(int ksb=0; ksb<Nsb; ++ksb)
-            fprintf(fp, "%d %d %d % e\n", isb, jsb, ksb, F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb));
+            fprintf(fp, "%d%d%d % e % e % e\n", isb, jsb, ksb,
+                    DeltaL[((0*Nsb + isb)*Nsb + jsb)*Nsb + ksb],
+                    DeltaL[((1*Nsb + isb)*Nsb + jsb)*Nsb + ksb],
+                    DeltaL[((2*Nsb + isb)*Nsb + jsb)*Nsb + ksb]);
         fclose(fp);
     }
 
