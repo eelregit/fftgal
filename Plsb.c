@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     double Lsb = L / Nsb;
     fftgal_t *fg = fftgal_init(Ng, Lsb, wisdom);
 
-    fprintf(stderr, "\n################## has rsd ##################\n");
+    fprintf(stderr, "\n################## has rsd ##################\n\n");
     double *xd=NULL, *yd=NULL, *zd=NULL;
     double *xsb=NULL, *ysb=NULL, *zsb=NULL;
     for(int ilos=0; ilos<2; ++ilos)
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
         assert(Np3sbtot==Np3);
     }
 
-    fprintf(stderr, "\n################ without rsd ################\n");
+    fprintf(stderr, "\n################ without rsd ################\n\n");
     int Np3sbtot = 0;
     for(int isb=0; isb<Nsb; ++isb)
     for(int jsb=0; jsb<Nsb; ++jsb)
