@@ -109,11 +109,11 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
     long int Ntot = 0;
     for(int b=0; b<Nb; ++b){
         double V = pow3(fg->L);
-        K[b] /= N[b];
-        P0[b] /= V * N[b];
-        P2[b] /= V * N[b];
-        P4[b] /= V * N[b];
-        P6[b] /= V * N[b];
+        K[b] *= 1. / N[b];
+        P0[b] *= 1. / (V * N[b]);
+        P2[b] *= 5. / (V * N[b]);
+        P4[b] *= 9. / (V * N[b]);
+        P6[b] *= 13. / (V * N[b]);
         Ntot += N[b];
     }
     assert(Ntot == Ng*Ng*Ng-1);
