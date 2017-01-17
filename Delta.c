@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
         Delta[ijk_sb] = Deltaij[0][ijk_sb]
                                          + Deltaij[4][ijk_sb]
                                          + Deltaij[8][ijk_sb];
-        Delta2[ijk_sb] = pow2(Delta2[ijk_sb]);
+        Delta2[ijk_sb] = pow2(Delta[ijk_sb]);
         S2[ijk_sb] = pow2(Deltaij[0][ijk_sb] - Delta[ijk_sb]/3.)
                    + pow2(Deltaij[1][ijk_sb]) + pow2(Deltaij[2][ijk_sb])
                    + pow2(Deltaij[3][ijk_sb]) + pow2(Deltaij[4][ijk_sb] - Delta[ijk_sb]/3.)
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     for(int isb=0; isb<Nsb; ++isb)
     for(int jsb=0; jsb<Nsb; ++jsb)
     for(int ksb=0; ksb<Nsb; ++ksb)
-        fprintf(fp, "%d%d%d % e % e % e\n", isb, jsb, ksb,
+        fprintf(fp, "%d%d%d % e %e %e\n", isb, jsb, ksb,
                 Delta[(isb*Nsb + jsb)*Nsb + ksb],
                 Delta2[(isb*Nsb + jsb)*Nsb + ksb],
                 S2[(isb*Nsb + jsb)*Nsb + ksb]);
