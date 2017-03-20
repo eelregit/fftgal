@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
             Kval[0] = 0.;
             for(int i=1; i<=Ng/2; ++i){
                 Kval[i] = i;
-                Kval[Ng-i] = Ng - i;
+                Kval[Ng-i] = - i;
             }
             fg->f[0] = 0.;
             for(int i=0; i<Ng; ++i)

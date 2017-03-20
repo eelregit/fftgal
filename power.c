@@ -61,9 +61,8 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
 {
     int Ng = fg->Ng;
     double *loshat = hat(los);
-    double dKinv = 1 / dK;
-    double KF = 2 * M_PI / fg->L;
-    int Nb = (int)floor(sqrt(3)*(Ng/2) * KF * dKinv) + 1;
+    double dKinv = 2*M_PI / fg->L / dK;
+    int Nb = (int)floor(sqrt(3)*(Ng/2) * dKinv) + 1;
     double *K = (double *)malloc(sizeof(double) * Nb); assert(K!=NULL);
     double *P0 = (double *)malloc(sizeof(double) * Nb); assert(P0!=NULL);
     double *P2 = (double *)malloc(sizeof(double) * Nb); assert(P2!=NULL);
@@ -78,8 +77,8 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
     double Kval[Ng];
     Kval[0] = 0.;
     for(int i=1; i<=Ng/2; ++i){
-        Kval[i] = i * KF;
-        Kval[Ng-i] = (Ng-i) * KF;
+        Kval[i] = i;
+        Kval[Ng-i] = - i;
     }
     for(int i=0; i<Ng; ++i)
     for(int j=0; j<Ng; ++j)
