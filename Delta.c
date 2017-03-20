@@ -64,7 +64,8 @@ int main(int argc, char *argv[])
     for(int idim=0; idim<3; ++idim)
     for(int jdim=idim; jdim<3; ++jdim){
         if(fk_copy==NULL){
-            fftgal_x2fx(fg, x, y, z, Np3, 0.);
+            double offset[3] = {0., 0., 0.};
+            fftgal_x2fx(fg, x, y, z, Np3, offset);
             fftgal_fx2fk(fg);
             fk_copy = fftgal_exportf(fg);
         }
@@ -82,12 +83,12 @@ int main(int argc, char *argv[])
                     double Wamp3 = Wamp[i] * Wamp[j] * Wamp[k];
                     double ReW = Wpha[i+j+k][0] * Wamp3;
                     double ImW = Wpha[i+j+k][1] * Wamp3;
-                    double Red = F(fg,i,j,2*k);
-                    double Imd = F(fg,i,j,2*k+1);
+                    double Red = F_Re(fg,i,j,k);
+                    double Imd = F_Im(fg,i,j,k);
                     double op = Kvec[idim] * Kvec[jdim]
                         / (Kvec[0]*Kvec[0] + Kvec[1]*Kvec[1] + Kvec[2]*Kvec[2]);
-                    F(fg,i,j,2*k) = op * (Red*ReW - Imd*ImW) / bias;
-                    F(fg,i,j,2*k+1) = op * (Red*ImW + Imd*ReW) / bias;
+                    F_Re(fg,i,j,k) = op * (Red*ReW - Imd*ImW);
+                    F_Im(fg,i,j,k) = op * (Red*ImW + Imd*ReW);
                 }
             }
         }
@@ -96,8 +97,8 @@ int main(int argc, char *argv[])
         for(int isb=0; isb<Nsb; ++isb)
         for(int jsb=0; jsb<Nsb; ++jsb)
         for(int ksb=0; ksb<Nsb; ++ksb){
-            Deltaij[3*idim+jdim][(isb*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb);
-            Deltaij[3*jdim+idim][(isb*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb);
+            Deltaij[3*idim+jdim][(isb*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb) / bias;
+            Deltaij[3*jdim+idim][(isb*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb) / bias;
         }
     }
     double Delta[Nsb3], Delta2[Nsb3], S2[Nsb3];

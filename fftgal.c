@@ -26,9 +26,10 @@ fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
     self->Ng = Ng;
     self->L = L;
     self->Np3 = 0; /* until painted */
+    for(int i=0; i<3; ++i)
+        self->offset[i] = 0.; /* until painted */
 
-    int Ng_half = Ng / 2;
-    int Ng_pad = 2 * (Ng_half + 1);
+    int Ng_pad = 2 * (Ng / 2 + 1);
     self->Ng_pad = Ng_pad;
     long int Ng3_pad = (long int)Ng * (long int)Ng * (long int)Ng_pad;
     self->Ng3_pad  = Ng3_pad;
@@ -64,20 +65,23 @@ fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
 
 
 void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
-        long long int Np3, double offset)
+        long long int Np3, double offset[3])
 {
     self->Np3 = Np3;
-    clock_t t = clock();
-    for(long int g=0; g<self->Ng3_pad; ++g){ /* must plan before initialization */
-        self->f[g] = 0.;
-    }
     int Ng = self->Ng;
-    double Hinv = self->Ng / self->L;
-    offset -= 0.5;
+    for(int i=0; i<3; ++i){
+        offset[i] = remainder(offset[i], Ng);
+        self->offset[i] = offset[i];
+    }
+
+    clock_t t = clock();
+    for(long int g=0; g<self->Ng3_pad; ++g) /* must zero after fftw_plan */
+        self->f[g] = 0.;
+    double Hinv = Ng / self->L;
     for(long long int p=0; p<Np3; ++p){
-        double xp = x[p] * Hinv + offset;
-        double yp = y[p] * Hinv + offset;
-        double zp = z[p] * Hinv + offset;
+        double xp = x[p] * Hinv - offset[0];
+        double yp = y[p] * Hinv - offset[1];
+        double zp = z[p] * Hinv - offset[2];
         int xint = (int)floor(xp);
         int yint = (int)floor(yp);
         int zint = (int)floor(zp);
@@ -97,14 +101,13 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
         double wz[4] = {pow3(1 - dz) / 6, ((3*dz - 6)*pow2(dz) + 4) / 6,
                     (((-3*dz + 3)*dz + 3)*dz + 1) / 6, pow3(dz) / 6};
         for(int ii=0; ii<4; ++ii)
-            for(int jj=0; jj<4; ++jj)
-                for(int kk=0; kk<4; ++kk)
-                    F(self, i[ii], j[jj], k[kk]) += wx[ii] * wy[jj] * wz[kk];
+        for(int jj=0; jj<4; ++jj)
+        for(int kk=0; kk<4; ++kk)
+            F(self, i[ii], j[jj], k[kk]) += wx[ii] * wy[jj] * wz[kk];
     }
-    double Ng3perNp3 = pow3(self->Ng) / Np3;
-    for(long int g=0; g<self->Ng3_pad; ++g){
+    double Ng3perNp3 = pow3(Ng) / Np3;
+    for(long int g=0; g<self->Ng3_pad; ++g)
         self->f[g] *= Ng3perNp3;
-    }
     fprintf(stderr, "fftgal_x2fx() %.3fs to paint %lld particles to %d^3 grid\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Np3, Ng);
 }
@@ -115,9 +118,45 @@ void fftgal_fx2fk(fftgal_t *self)
     clock_t t = clock();
     fftw_execute(self->fx2fk);
     double H3 = pow3(self->L / self->Ng);
-    for(long int g=0; g<self->Ng3_pad; ++g){
+    for(long int g=0; g<self->Ng3_pad; ++g)
         self->f[g] *= H3;
+
+    int is_offset = 0;
+    for(int i=0; i<3; ++i)
+        is_offset += fabs(self->offset[i]) > 1e-15;
+    if(is_offset){
+        int Ng = self->Ng;
+        double phase[3][Ng][2]; /* dim x mesh x complex */
+        for(int i=0; i<3; ++i){
+            phase[i][0][0] = 1.;
+            phase[i][0][1] = 0.;
+        }
+        for(int i=0; i<3; ++i)
+        for(int j=1; j<=Ng/2; ++j){
+            double arg = - 2 * M_PI * j / Ng * self->offset[i];
+            phase[i][j][0] = cos(arg);
+            phase[i][j][1] = sin(arg);
+            phase[i][Ng-j][0] = phase[i][j][0];
+            phase[i][Ng-j][1] = - phase[i][j][1];
+        }
+        for(int i=0; i<Ng; ++i)
+        for(int j=0; j<Ng; ++j)
+        for(int k=0; k<=Ng/2; ++k){
+            double Rep = phase[0][i][0] * phase[1][j][0] * phase[2][k][0]
+                       - phase[0][i][0] * phase[1][j][1] * phase[2][k][1]
+                       - phase[0][i][1] * phase[1][j][0] * phase[2][k][1]
+                       - phase[0][i][1] * phase[1][j][1] * phase[2][k][0];
+            double Imp = phase[0][i][1] * phase[1][j][0] * phase[2][k][0]
+                       + phase[0][i][0] * phase[1][j][1] * phase[2][k][0]
+                       + phase[0][i][0] * phase[1][j][0] * phase[2][k][1]
+                       - phase[0][i][1] * phase[1][j][1] * phase[2][k][1];
+            double Red = F_Re(self,i,j,k);
+            double Imd = F_Im(self,i,j,k);
+            F_Re(self,i,j,k) = (Red*Rep - Imd*Imp);
+            F_Im(self,i,j,k) = (Red*Imp + Imd*Rep);
+        }
     }
+
     fprintf(stderr, "fftgal_fx2fk() %.3fs to FFT f(x) to f(k) on a %d^3 grid\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, self->Ng);
 }
@@ -126,22 +165,21 @@ void fftgal_fx2fk(fftgal_t *self)
 void fftgal_deconv(fftgal_t *self)
 {
     int Ng = self->Ng;
-    int Ng_half = Ng / 2;
     double *winv = (double *)malloc(sizeof(double) * Ng); assert(winv!=NULL);
     winv[0] = 1.;
-    for(int i=1; i<=Ng_half; ++i){
+    for(int i=1; i<=Ng/2; ++i){
         double arg = M_PI * i / Ng;
         winv[i] = pow2(pow2(arg / sin(arg)));
         winv[Ng-i] = winv[i];
     }
     clock_t t = clock();
     for(int i=0; i<Ng; ++i)
-        for(int j=0; j<Ng; ++j)
-            for(int k=0; k<=Ng_half; ++k){
-                double Winv = winv[i] * winv[j] * winv[k];
-                F(self,i,j,2*k) *= Winv;
-                F(self,i,j,2*k+1) *= Winv;
-            }
+    for(int j=0; j<Ng; ++j)
+    for(int k=0; k<=Ng/2; ++k){
+        double winv3 = winv[i] * winv[j] * winv[k];
+        F_Re(self,i,j,k) *= winv3;
+        F_Im(self,i,j,k) *= winv3;
+    }
     fprintf(stderr, "fftgal_deconv() %.3fs to deconvolve paintbrush on a %d^3 grid\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Ng);
     free(winv);
@@ -151,18 +189,19 @@ void fftgal_deconv(fftgal_t *self)
 void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int Np3)
 {
     fprintf(stderr, "fftgal_x2fk() interlacing with half-grid offset\n");
-    fftgal_x2fx(self, x, y, z, Np3, 0.5);
+    double offset_dual[3] = {0.5, 0.5, 0.5};
+    fftgal_x2fx(self, x, y, z, Np3, offset_dual);
     fftgal_fx2fk(self);
 
     double *fdual = fftgal_exportf(self);
 
     fprintf(stderr, "fftgal_x2fk() interlacing with zero offset\n");
-    fftgal_x2fx(self, x, y, z, Np3, 0.);
+    double offset_none[3] = {0., 0., 0.};
+    fftgal_x2fx(self, x, y, z, Np3, offset_none);
     fftgal_fx2fk(self);
 
-    for(long int g=0; g<self->Ng3_pad; ++g){
+    for(long int g=0; g<self->Ng3_pad; ++g)
         self->f[g] = 0.5 * (fdual[g] + self->f[g]);
-    }
     fftgal_deconv(self);
 
     free(fdual);
@@ -174,9 +213,8 @@ void fftgal_fk2fx(fftgal_t *self)
     clock_t t = clock();
     fftw_execute(self->fk2fx);
     double L3inv = 1 / pow3(self->L);
-    for(long int g=0; g<self->Ng3_pad; ++g){
+    for(long int g=0; g<self->Ng3_pad; ++g)
         self->f[g] *= L3inv;
-    }
     fprintf(stderr, "fftgal_fk2fx() %.3fs to FFT f(k) to f(x) on a %d^3 grid\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, self->Ng);
 }

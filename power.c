@@ -18,15 +18,10 @@ static double pow3(double x)
     return x*x*x;
 }
 
-double amp(double x[3])
-{
-    return sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
-}
-
 double *hat(double los[3])
 {
     static double loshat[3];
-    double losamp = amp(los);
+    double losamp = sqrt(pow2(los[0]) + pow2(los[1]) + pow2(los[2]));
     if(losamp > 1e-7){
         loshat[0] = los[0] / losamp;
         loshat[1] = los[1] / losamp;
@@ -80,28 +75,27 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
         N[b] = 0;
     }
     clock_t t = clock();
-    for(int i=0; i<Ng; ++i){
-        double Kvec[3];
-        Kvec[0] = KF * remainder(i, Ng);
-        for(int j=0; j<Ng; ++j){
-            Kvec[1] = KF * remainder(j, Ng);
-            for(int k=(i==0 && j==0); k<=Ng/2; ++k){ /* skip Kvec[]={0,0,0} */
-                Kvec[2] = KF * k;
-                double Kamp = amp(Kvec);
-                int b = (int)floor(Kamp * dKinv);
-                int count = 1 + (2*k%Ng > 0);
-                double delta2 = pow2(F(fg,i,j,2*k)) + pow2(F(fg,i,j,2*k+1));
-                delta2 *= count;
-                double mu2 = pow2((Kvec[0]*loshat[0] + Kvec[1]*loshat[1] + Kvec[2]*loshat[2])
-                        / Kamp);
-                K[b] += count * Kamp;
-                P0[b] += delta2;
-                P2[b] += delta2 * (1.5*mu2 - 0.5);
-                P4[b] += delta2 * ((4.375*mu2 - 3.75)*mu2 + 0.375);
-                P6[b] += delta2 * (((14.4375*mu2 - 19.6875)*mu2 + 6.5625)*mu2 - 0.3125);
-                N[b] += count;
-            }
-        }
+    double Kval[Ng];
+    Kval[0] = 0.;
+    for(int i=1; i<=Ng/2; ++i){
+        Kval[i] = i * KF;
+        Kval[Ng-i] = (Ng-i) * KF;
+    }
+    for(int i=0; i<Ng; ++i)
+    for(int j=0; j<Ng; ++j)
+    for(int k=(i==0 && j==0); k<=Ng/2; ++k){ /* skip {0,0,0} */
+        double Kamp = sqrt(pow2(Kval[i]) + pow2(Kval[j]) + pow2(Kval[k]));
+        int b = (int)floor(Kamp * dKinv);
+        int count = 1 + (2*k%Ng > 0);
+        double delta2 = pow2(F_Re(fg,i,j,k)) + pow2(F_Im(fg,i,j,k));
+        delta2 *= count;
+        double mu2 = pow2((Kval[i]*loshat[0] + Kval[j]*loshat[1] + Kval[k]*loshat[2]) / Kamp);
+        K[b] += count * Kamp;
+        P0[b] += delta2;
+        P2[b] += delta2 * (1.5*mu2 - 0.5);
+        P4[b] += delta2 * ((4.375*mu2 - 3.75)*mu2 + 0.375);
+        P6[b] += delta2 * (((14.4375*mu2 - 19.6875)*mu2 + 6.5625)*mu2 - 0.3125);
+        N[b] += count;
     }
     fprintf(stderr, "Pl() %.3fs to bin a %d^3 grid\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Ng);

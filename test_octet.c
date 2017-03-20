@@ -3,40 +3,54 @@
 #include <assert.h>
 #include "fftgal.h"
 
+
 int main()
 {
-    fftgal_t *octet = fftgal_init(2, 2., "FFTW_ESTIMATE");
+    double eps = 1e-15;
 
+    int Ng = 2;
+    double L = 2.;
+    fftgal_t *octet = fftgal_init(Ng, L, "FFTW_ESTIMATE");
+
+    int Np = 1;
     double x[1] = {0.}, y[1] = {0.}, z[1] = {0.};
-    fftgal_x2fx(octet, x, y, z, 1, -9.5);
-
+    double offset[3] = {7., 7., 7.};
+    fftgal_x2fx(octet, x, y, z, Np, offset);
+    fprintf(stdout, "* expected result: (2/3, 4/3)⨂ (2/3, 4/3)⨂ (2/3, 4/3)\n");
     for(int i=0; i<octet->Ng; ++i)
-        for(int j=0; j<octet->Ng; ++j)
-            for(int k=0; k<octet->Ng; ++k)
-                fprintf(stdout, "octet->fx[%d,%d,%d] = %.16f\n", i, j, k, F(octet,i,j,k));
-    double err = F(octet,0,0,0)-64./27;
-    double eps = 1e-14;
-    fprintf(stdout, "* error on octet->fx[0,0,0] = %e\n", err); assert(fabs(err) < eps);
-    /* expected result: 8/27*{8, 4, 4, 4, 2, 2, 2, 1} */
+    for(int j=0; j<octet->Ng; ++j)
+    for(int k=0; k<octet->Ng; ++k){
+        double f = F(octet,i,j,k);
+        double fexp = 8./27. * (i+1) * (j+1) * (k+1);
+        double err = f - fexp;
+        fprintf(stdout, "octet->fx[%d,%d,%d] = %.4f;  err = % .0e\n", i, j, k, f, err);
+        assert(fabs(err) < eps);
+    }
 
     fftgal_fx2fk(octet);
+    fprintf(stdout, "* expected result: (2, 2/3)⨂ (2, 2/3)⨂ (2, 2/3)\n");
     for(int i=0; i<octet->Ng; ++i)
-        for(int j=0; j<octet->Ng; ++j)
-            for(int k=0; k<=octet->Ng/2; ++k)
-                fprintf(stdout, "octet->fk[%d,%d,%d] = %.16f + %.16f i\n", i, j, k,
-                        F(octet,i,j,2*k), F(octet,i,j,2*k+1));
-    err = F(octet,1,1,2)-8./27;
-    fprintf(stdout, "* error on Re(octet->fk[1,1,1]) = %e\n", err); assert(fabs(err) < eps);
-    err = F(octet,1,1,3)-0;
-    fprintf(stdout, "* error on Im(octet->fk[1,1,1]) = %e\n", err); assert(fabs(err) < eps);
+    for(int j=0; j<octet->Ng; ++j)
+    for(int k=0; k<=octet->Ng/2; ++k){
+        double f_re = F_Re(octet,i,j,k), f_im = F_Im(octet,i,j,k);
+        double fexp_re = 8. / (1+2*i) / (1+2*j) / (1+2*k), fexp_im = 0.;
+        double err_re = f_re - fexp_re, err_im = f_im - fexp_im;
+        fprintf(stdout, "octet->fk[%d,%d,%d] = %.4f + %.4f i;", i, j, k, f_re, f_im);
+        fprintf(stdout, "  err = % .0e + % .0e i\n", err_re, err_im);
+        assert(fabs(err_re) < eps); assert(fabs(err_im) < eps);
+    }
 
     fftgal_fk2fx(octet);
+    fprintf(stdout, "* expected result: (4/3, 2/3)⨂ (4/3, 2/3)⨂ (4/3, 2/3)\n");
     for(int i=0; i<octet->Ng; ++i)
-        for(int j=0; j<octet->Ng; ++j)
-            for(int k=0; k<octet->Ng; ++k)
-                fprintf(stdout, "octet->fx[%d,%d,%d] = %.16f\n", i, j, k, F(octet,i,j,k));
-    err = F(octet,1,1,0)-16./27;
-    fprintf(stdout, "* error on octet->fx[1,1,0] = %e\n", err); assert(fabs(err) < eps);
+    for(int j=0; j<octet->Ng; ++j)
+    for(int k=0; k<octet->Ng; ++k){
+        double f = F(octet,i,j,k);
+        double fexp = 64./27. / (i+1) / (j+1) / (k+1);
+        double err = f - fexp;
+        fprintf(stdout, "octet->fx[%d,%d,%d] = %.4f;  err = % .0e\n", i, j, k, f, err);
+        assert(fabs(err) < eps);
+    }
 
     fprintf(stdout, "* test_octet PASSED on eps = %e\n", eps);
     fftgal_free(octet);

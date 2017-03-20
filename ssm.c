@@ -71,40 +71,41 @@ int main(int argc, char *argv[])
         double DeltaL[3*Nsb*Nsb*Nsb];
         for(int L_half=0; L_half<=2; ++L_half){
             if(fk_copy==NULL){
-                fftgal_x2fx(fg, x, y, z, Np3, 0.);
+                double offset[3] = {0., 0., 0.};
+                fftgal_x2fx(fg, x, y, z, Np3, offset);
                 fftgal_fx2fk(fg);
                 fk_copy = fftgal_exportf(fg);
             }
             else
                 fftgal_importf(fg, fk_copy);
 
+            double Kval[Ng];
+            Kval[0] = 0.;
+            for(int i=1; i<=Ng/2; ++i){
+                Kval[i] = i;
+                Kval[Ng-i] = Ng - i;
+            }
             fg->f[0] = 0.;
-            for(int i=0; i<Ng; ++i){
-                double Kvec[3];
-                Kvec[0] = remainder(i, Ng);
-                for(int j=0; j<Ng; ++j){
-                    Kvec[1] = remainder(j, Ng);
-                    for(int k=(i==0 && j==0); k<=Ng/2; ++k){ /* skip Kvec[]={0,0,0} */
-                        Kvec[2] = k;
-                        double mu2 = pow2(Kvec[0]*loshat[0] + Kvec[1]*loshat[1] + Kvec[2]*loshat[2])
-                                / (Kvec[0]*Kvec[0] + Kvec[1]*Kvec[1] + Kvec[2]*Kvec[2]);
-                        double Legendre[3] = {1., 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
-                        double Wamp3 = Wamp[i] * Wamp[j] * Wamp[k];
-                        double ReW = Wpha[i+j+k][0] * Wamp3;
-                        double ImW = Wpha[i+j+k][1] * Wamp3;
-                        double Red = F(fg,i,j,2*k);
-                        double Imd = F(fg,i,j,2*k+1);
-                        F(fg,i,j,2*k) = Legendre[L_half] * (Red*ReW - Imd*ImW) / bias;
-                        F(fg,i,j,2*k+1) = Legendre[L_half] * (Red*ImW + Imd*ReW) / bias;
-                    }
-                }
+            for(int i=0; i<Ng; ++i)
+            for(int j=0; j<Ng; ++j)
+            for(int k=(i==0 && j==0); k<=Ng/2; ++k){ /* skip {0,0,0} */
+                double mu2 = pow2(Kval[i]*loshat[0] + Kval[j]*loshat[1] + Kval[k]*loshat[2])
+                        / (pow2(Kval[i]) + pow2(Kval[j]) + pow2(Kval[k]));
+                double Legendre[3] = {1., 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
+                double Wamp3 = Wamp[i] * Wamp[j] * Wamp[k];
+                double ReW = Wpha[i+j+k][0] * Wamp3;
+                double ImW = Wpha[i+j+k][1] * Wamp3;
+                double Red = F_Re(fg,i,j,k);
+                double Imd = F_Im(fg,i,j,k);
+                F_Re(fg,i,j,k) = Legendre[L_half] * (Red*ReW - Imd*ImW);
+                F_Im(fg,i,j,k) = Legendre[L_half] * (Red*ImW + Imd*ReW);
             }
 
             fftgal_fk2fx(fg);
             for(int isb=0; isb<Nsb; ++isb)
             for(int jsb=0; jsb<Nsb; ++jsb)
             for(int ksb=0; ksb<Nsb; ++ksb)
-                DeltaL[((L_half*Nsb + isb)*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb);
+                DeltaL[((L_half*Nsb + isb)*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb) / bias;
         }
 
         char outfile[maxlen];

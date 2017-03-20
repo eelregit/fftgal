@@ -8,6 +8,8 @@
 
 
 #define F(self,i,j,k) (self->f[((long int)(k) + self->Ng_pad * ((long int)(j) + self->Ng * (long int)(i)))])
+#define F_Re(self,i,j,k) F(self,i,j,2*k)
+#define F_Im(self,i,j,k) F(self,i,j,2*k+1)
 
 
 typedef struct {
@@ -19,6 +21,7 @@ typedef struct {
     long int Ng3_pad; /* sizeof(f) / sizeof(double) */
     long long int Np3;
     double L;
+    double offset[3]; /* mesh (Dirac comb Ш) wrt boundary */
 } fftgal_t;
 
 
@@ -28,7 +31,7 @@ fftgal_t *fftgal_init(int Ng, double L, char wisdom[]);
 
 /* paint , forward FFT, and deconvolve paintbrush */
 void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
-        long long int Np3, double offset);
+        long long int Np3, double offset[3]);
 void fftgal_fx2fk(fftgal_t *self);
 void fftgal_deconv(fftgal_t *self);
 
