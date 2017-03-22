@@ -12,7 +12,7 @@
 
 double H(double a)
 {
-    double Om = 0.31;
+    double Om = 0.29;
     double OL = 1 - Om;
     return 100 * sqrt(Om/(a*a*a) + OL);
 }
