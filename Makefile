@@ -16,4 +16,4 @@ test_octet: test_octet.c fftgal.c fftgal.h
 	$(CC) $(CFLAGS) test_octet.c fftgal.c -lfftw3 -lm -o test_octet
 
 clean:
-	rm -f Plsb ssm test_octet
+	rm -f Plsb ssm Delta test_octet
