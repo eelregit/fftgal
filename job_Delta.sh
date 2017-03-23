@@ -12,11 +12,11 @@ wisdom=${Ng}.wsdm
 Nsb=4
 catdir=/project/projectdirs/boss/galaxy/QPM/dr12d_cubic_mocks
 a=0.6452
-outdir=$HOME/ssm/ana
+outdir=$SCRATCH/ssm/ana
 
 echo ${SLURM_JOB_ID} starting $(date) on $(hostname)
-#module load fftw gcc
-#make Delta
+module load fftw gcc
+make Delta
 for catid in $@
 do
     log=$outdir/a${a}_$(printf '%04d' $catid)/Delta.log
