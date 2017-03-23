@@ -61,8 +61,8 @@ int main(int argc, char *argv[])
     }
 
     double Deltaij[9][Nsb3];
-    for(int idim=0; idim<3; ++idim)
-    for(int jdim=idim; jdim<3; ++jdim){
+    for(int dim1=0; dim1<3; ++dim1)
+    for(int dim2=dim1; dim2<3; ++dim2){
         if(fk_copy==NULL){
             double offset[3] = {0., 0., 0.};
             fftgal_x2fx(fg, x, y, z, Np3, offset);
@@ -72,33 +72,34 @@ int main(int argc, char *argv[])
         else
             fftgal_importf(fg, fk_copy);
 
+        double Kval[Ng];
+        Kval[0] = 0.;
+        for(int i=1; i<=Ng/2; ++i){
+            Kval[i] = i;
+            Kval[Ng-i] = - i;
+        }
         fg->f[0] = 0.;
-        for(int i=0; i<Ng; ++i){
-            double Kvec[3];
-            Kvec[0] = remainder(i, Ng);
-            for(int j=0; j<Ng; ++j){
-                Kvec[1] = remainder(j, Ng);
-                for(int k=(i==0 && j==0); k<=Ng/2; ++k){ /* skip Kvec[]={0,0,0} */
-                    Kvec[2] = k;
-                    double Wamp3 = Wamp[i] * Wamp[j] * Wamp[k];
-                    double ReW = Wpha[i+j+k][0] * Wamp3;
-                    double ImW = Wpha[i+j+k][1] * Wamp3;
-                    double Red = F_Re(fg,i,j,k);
-                    double Imd = F_Im(fg,i,j,k);
-                    double op = Kvec[idim] * Kvec[jdim]
-                        / (Kvec[0]*Kvec[0] + Kvec[1]*Kvec[1] + Kvec[2]*Kvec[2]);
-                    F_Re(fg,i,j,k) = op * (Red*ReW - Imd*ImW);
-                    F_Im(fg,i,j,k) = op * (Red*ImW + Imd*ReW);
-                }
-            }
+        for(int i=0; i<Ng; ++i)
+        for(int j=0; j<Ng; ++j)
+        for(int k=(i==0 && j==0); k<=Ng/2; ++k){ /* skip {0,0,0} */
+            double Kvec[3] = {Kval[i], Kval[j], Kval[k]};
+            double Wamp3 = Wamp[i] * Wamp[j] * Wamp[k];
+            double ReW = Wpha[i+j+k][0] * Wamp3;
+            double ImW = Wpha[i+j+k][1] * Wamp3;
+            double Red = F_Re(fg,i,j,k);
+            double Imd = F_Im(fg,i,j,k);
+            double op = Kvec[dim1] * Kvec[dim2]
+                / (pow2(Kvec[0]) + pow2(Kvec[1]) + pow2(Kvec[2]));
+            F_Re(fg,i,j,k) = op * (Red*ReW - Imd*ImW);
+            F_Im(fg,i,j,k) = op * (Red*ImW + Imd*ReW);
         }
 
         fftgal_fk2fx(fg);
         for(int isb=0; isb<Nsb; ++isb)
         for(int jsb=0; jsb<Nsb; ++jsb)
         for(int ksb=0; ksb<Nsb; ++ksb){
-            Deltaij[3*idim+jdim][(isb*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb) / bias;
-            Deltaij[3*jdim+idim][(isb*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb) / bias;
+            Deltaij[3*dim1+dim2][(isb*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb) / bias;
+            Deltaij[3*dim2+dim1][(isb*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb) / bias;
         }
     }
     double Delta[Nsb3], Delta2[Nsb3], S2[Nsb3];
