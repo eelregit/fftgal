@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
         double DeltaL[3*Nsb*Nsb*Nsb];
         for(int L_half=0; L_half<=2; ++L_half){
             if(fk_copy==NULL){
-                double offset[3] = {0., 0., 0.};
+                double offset[3] = {0.5, 0.5, 0.5};
                 fftgal_x2fx(fg, x, y, z, Np3, offset);
                 fftgal_fx2fk(fg);
                 fk_copy = fftgal_exportf(fg);
