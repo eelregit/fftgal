@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     for(int dim1=0; dim1<3; ++dim1)
     for(int dim2=dim1; dim2<3; ++dim2){
         if(fk_copy==NULL){
-            double offset[3] = {0., 0., 0.};
+            double offset[3] = {0.5, 0.5, 0.5};
             fftgal_x2fx(fg, x, y, z, Np3, offset);
             fftgal_fx2fk(fg);
             fk_copy = fftgal_exportf(fg);
