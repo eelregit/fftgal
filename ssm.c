@@ -11,7 +11,7 @@
 #endif
 
 
-/* use bias≠1 to rescale to matter overdensity if it's known,
+/* use bias!=1 to rescale to matter overdensity if it's known,
  * otherwise output is in tracer overdensity */
 const double bias = 1.;
 
