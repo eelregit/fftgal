@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
-#include "fftgal.h"
+#include "../fftgal.h"
 
 
 int main()
@@ -52,7 +52,7 @@ int main()
         assert(fabs(err) < eps);
     }
 
-    fprintf(stdout, "* test_octet PASSED on eps = %e\n", eps);
+    fprintf(stdout, "* test PASSED on eps = %e\n", eps);
     fftgal_free(octet);
     return 0;
 }

@@ -4,10 +4,10 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
-#include "fftgal.h"
-#include "power.h"
-#include "box.h"
-#include "io/qpm.h"
+#include "../fftgal.h"
+#include "../power.h"
+#include "../box.h"
+#include "../io/qpm.h"
 
 
 double H(double a)

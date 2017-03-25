@@ -1,19 +1,22 @@
 CC = gcc
 CFLAGS = -Wall -I$(FFTW_INC) -L$(FFTW_DIR) -O2
+LIBS = -lfftw3 -lm
 
 .PHONY: clean
 
-Plsb: Plsb.c fftgal.c fftgal.h power.c power.h box.c box.h io/qpm.c io/qpm.h
-	$(CC) $(CFLAGS) Plsb.c fftgal.c power.c box.c io/qpm.c -lfftw3 -lm -o Plsb
+Plsb: src/app/Plsb.c src/fftgal.c src/fftgal.h src/power.c src/power.h \
+    src/box.c src/box.h src/io/qpm.c src/io/qpm.h
+	$(CC) $(CFLAGS) src/app/Plsb.c src/fftgal.c src/power.c src/box.c \
+		src/io/qpm.c $(LIBS) -o $@
 
-ssm: ssm.c fftgal.c fftgal.h io/qpm.c io/qpm.h
-	$(CC) $(CFLAGS) ssm.c fftgal.c io/qpm.c -lfftw3 -lm -o ssm
+ssm: src/app/ssm.c src/fftgal.c src/fftgal.h src/io/qpm.c src/io/qpm.h
+	$(CC) $(CFLAGS) src/app/ssm.c src/fftgal.c src/io/qpm.c $(LIBS) -o $@
 
-Delta: Delta.c fftgal.c fftgal.h io/qpm.c io/qpm.h
-	$(CC) $(CFLAGS) Delta.c fftgal.c io/qpm.c -lfftw3 -lm -o Delta
+Delta: src/app/Delta.c src/fftgal.c src/fftgal.h src/io/qpm.c src/io/qpm.h
+	$(CC) $(CFLAGS) src/app/Delta.c src/fftgal.c src/io/qpm.c $(LIBS) -o $@
 
-test_octet: test_octet.c fftgal.c fftgal.h
-	$(CC) $(CFLAGS) test_octet.c fftgal.c -lfftw3 -lm -o test_octet
+test_octet: src/tests/octet.c src/fftgal.c src/fftgal.h
+	$(CC) $(CFLAGS) src/tests/octet.c src/fftgal.c $(LIBS) -o $@
 
 clean:
 	rm -f Plsb ssm Delta test_octet
