@@ -12,7 +12,7 @@ wisdom=${Ng}.wsdm
 Nsb=4
 catdir=/project/projectdirs/boss/galaxy/QPM/dr12d_cubic_mocks
 a=0.6452
-outdir=$SCRATCH/ssm/ana
+outdir=$SCRATCH/ssm.d
 
 echo ${SLURM_JOB_ID} starting $(date) on $(hostname)
 module load fftw gcc
