@@ -1,6 +1,5 @@
-# FFT-based analysis in 3D
+# FFT-based analysis of large-scale structure of the Universe
 
-* for GALaxies/N-body
-* cubic, in-place FFT using FFTW
+* 3D, cubic, in-place FFT using FFTW
 * paint with PCS scheme
 * optional interlacing (Sefusatti et al. 2016)
