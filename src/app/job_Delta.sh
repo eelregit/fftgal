@@ -5,7 +5,7 @@
 #SBATCH --job-name=Delta
 #SBATCH --output=Delta%j.out
 
-Delta=$HOME/ssm/fftgal/Delta
+Delta=$SCRATCH/fftgal/Delta
 Ng=512
 L=2560
 wisdom=${Ng}.wsdm

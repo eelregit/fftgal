@@ -5,7 +5,7 @@
 #SBATCH --job-name=ssm
 #SBATCH --output=ssm%j.out
 
-ssm=$HOME/ssm/fftgal/ssm
+ssm=$SCRATCH/fftgal/ssm
 Ng=512
 L=2560
 wisdom=${Ng}.wsdm
