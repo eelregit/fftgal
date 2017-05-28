@@ -106,7 +106,7 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
         for(int kk=0; kk<4; ++kk)
             F(self, i[ii], j[jj], k[kk]) += wx[ii] * wy[jj] * wz[kk];
     }
-    double Ng3perNp3 = pow3(Ng) / Np3;
+    double Ng3perNp3 = pow3(Ng * self->fold) / Np3;
     for(long int g=0; g<self->Ng3_pad; ++g)
         self->f[g] *= Ng3perNp3;
     fprintf(stderr, "fftgal_x2fx() %.3fs to paint %lld particles to %d^3 grid\n",

@@ -24,4 +24,4 @@ test_octet: src/tests/octet.c src/fftgal.c src/fftgal.h
 	$(CC) $(CFLAGS) src/tests/octet.c src/fftgal.c $(LIBS) -o $@
 
 clean:
-	rm -f Plsb ssm Delta test_octet
+	rm -f Plsb Pl ssm Delta test_octet
