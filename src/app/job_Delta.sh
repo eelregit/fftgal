@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --ntasks=1
 #SBATCH --partition=shared
-#SBATCH --time=4:00:00
+#SBATCH --time=2:00:00
 #SBATCH --job-name=Delta
 #SBATCH --output=Delta%j.out
 

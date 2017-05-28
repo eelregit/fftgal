@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     pbc(x, y, z, Np3, L);
 
     double Lsb = L / Nsb;
-    fftgal_t *fg = fftgal_init(Ng, Lsb, wisdom);
+    fftgal_t *fg = fftgal_init(Ng, Lsb, 1, wisdom);
 
     fprintf(stderr, "\n################## has rsd ##################\n\n");
     double *xd=NULL, *yd=NULL, *zd=NULL;
@@ -82,8 +82,7 @@ int main(int argc, char *argv[])
                     outdir, a, catid, ilos, jlos, klos, isb, jsb, ksb);
             assert(ret>=0 && ret<maxlen);
             double dK = 0.01;
-            int Kstep = 1;
-            Pl(fg, dK, Kstep, los, outfile);
+            Pl(fg, dK, los, outfile);
         }
         assert(Np3sbtot==Np3);
     }
@@ -116,8 +115,7 @@ int main(int argc, char *argv[])
                     outdir, a, catid, ilos, jlos, klos, isb, jsb, ksb);
             assert(ret>=0 && ret<maxlen);
             double dK = 0.01;
-            int Kstep = 1;
-            Pl(fg, dK, Kstep, los, outfile);
+            Pl(fg, dK, los, outfile);
         }
     }
     assert(Np3sbtot==Np3);

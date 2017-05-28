@@ -21,13 +21,13 @@ double H(double a)
 int main(int argc, char *argv[])
 {
     if(argc!=9){
-        fprintf(stderr, "Usage: %s Ng L wisdom Kstep catdir a catid outdir\n", argv[0]);
+        fprintf(stderr, "Usage: %s Ng L wisdom fold catdir a catid outdir\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
     double L = atof(argv[2]); assert(L>0. && L<1e4);
     char *wisdom = argv[3];
-    int Kstep = atoi(argv[4]); assert(Kstep>0 && Kstep<=8);
+    int fold = atoi(argv[4]); assert(fold>0 && fold<=8);
     char *catdir = argv[5];
     double a = atof(argv[6]); assert(a>0. && a<1.1);
     int catid = atoi(argv[7]); assert(catid>=1 && catid<=1000);
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     assert(Np3>0);
     pbc(x, y, z, Np3, L);
 
-    fftgal_t *fg = fftgal_init(Ng, L, wisdom);
+    fftgal_t *fg = fftgal_init(Ng, L, fold, wisdom);
 
     fprintf(stderr, "\n################## has rsd ##################\n\n");
     double *xd=NULL, *yd=NULL, *zd=NULL;
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
                 outdir, a, catid, ilos, jlos, klos);
         assert(ret>=0 && ret<maxlen);
         double dK = 0.01;
-        Pl(fg, dK, Kstep, los, outfile);
+        Pl(fg, dK, los, outfile);
     }
 
     fprintf(stderr, "\n################ without rsd ################\n\n");
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
                 outdir, a, catid, ilos, jlos, klos);
         assert(ret>=0 && ret<maxlen);
         double dK = 0.01;
-        Pl(fg, dK, Kstep, los, outfile);
+        Pl(fg, dK, los, outfile);
     }
 
     free(x); free(y); free(z); free(vx); free(vy); free(vz); free(M); free(issat);

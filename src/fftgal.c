@@ -20,11 +20,12 @@ static double pow3(double x)
 }
 
 
-fftgal_t *fftgal_init(int Ng, double L, char wisdom[])
+fftgal_t *fftgal_init(int Ng, double L, int fold, char wisdom[])
 {
     fftgal_t *self = (fftgal_t *)malloc(sizeof(fftgal_t)); assert(self!=NULL);
     self->Ng = Ng;
     self->L = L;
+    self->fold = fold;
     self->Np3 = 0; /* until painted */
     for(int i=0; i<3; ++i)
         self->offset[i] = 0.; /* until painted */
@@ -77,7 +78,7 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
     clock_t t = clock();
     for(long int g=0; g<self->Ng3_pad; ++g) /* must zero after fftw_plan */
         self->f[g] = 0.;
-    double Hinv = Ng / self->L;
+    double Hinv = Ng * self->fold / self->L;
     for(long long int p=0; p<Np3; ++p){
         double xp = x[p] * Hinv - offset[0];
         double yp = y[p] * Hinv - offset[1];
@@ -117,7 +118,7 @@ void fftgal_fx2fk(fftgal_t *self)
 {
     clock_t t = clock();
     fftw_execute(self->fx2fk);
-    double H3 = pow3(self->L / self->Ng);
+    double H3 = pow3(self->L / self->fold / self->Ng);
     for(long int g=0; g<self->Ng3_pad; ++g)
         self->f[g] *= H3;
 
@@ -212,9 +213,9 @@ void fftgal_fk2fx(fftgal_t *self)
 {
     clock_t t = clock();
     fftw_execute(self->fk2fx);
-    double L3inv = 1 / pow3(self->L);
+    double Vinv = pow3(self->fold / self->L);
     for(long int g=0; g<self->Ng3_pad; ++g)
-        self->f[g] *= L3inv;
+        self->f[g] *= Vinv;
     fprintf(stderr, "fftgal_fk2fx() %.3fs to FFT f(k) to f(x) on a %d^3 grid\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, self->Ng);
 }

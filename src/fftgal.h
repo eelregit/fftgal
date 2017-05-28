@@ -18,12 +18,13 @@ typedef struct {
     long int Ng3_pad; /* sizeof(f) / sizeof(double) */
     long long int Np3;
     double L;
+    int fold; /* folded length is L/fold */
     double offset[3]; /* mesh (Dirac comb Ш) wrt boundary */
 } fftgal_t;
 
 
 /* allocate f[] and plan fftw */
-fftgal_t *fftgal_init(int Ng, double L, char wisdom[]);
+fftgal_t *fftgal_init(int Ng, double L, int fold, char wisdom[]);
 
 
 /* paint , forward FFT, and deconvolve paintbrush */
