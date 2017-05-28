@@ -102,20 +102,19 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
 
     long int Ntot = 0;
     for(int b=0; b<Nb; ++b){
-        double V = pow3(fg->L);
         K[b] *= KF / N[b];
-        P0[b] *= 1. / (V * N[b]);
-        P2[b] *= 5. / (V * N[b]);
-        P4[b] *= 9. / (V * N[b]);
-        P6[b] *= 13. / (V * N[b]);
+        P0[b] *= 1. / (fg->V * N[b]);
+        P2[b] *= 5. / (fg->V * N[b]);
+        P4[b] *= 9. / (fg->V * N[b]);
+        P6[b] *= 13. / (fg->V * N[b]);
         Ntot += N[b];
     }
     assert(Ntot == Ng*Ng*Ng-1);
 
     FILE *fp = fopen(output, "w"); assert(fp!=NULL);
-    fprintf(fp, "# Nb Ng Np3 L fold dK los[3]\n");
-    fprintf(fp, "%d %d %lld %f %d %f %f %f %f\n",
-            Nb, Ng, fg->Np3, fg->L, fg->fold, dK, los[0], los[1], los[2]);
+    fprintf(fp, "# Nb Ng Np3 L V fold dK los[3]\n");
+    fprintf(fp, "%d %d %lld %f %g %d %f %f %f %f\n",
+            Nb, Ng, fg->Np3, fg->L, fg->V, fg->fold, dK, los[0], los[1], los[2]);
     fprintf(fp, "# K P0 P2 P4 P6 N\n");
     for(int b=0; b<Nb; ++b)
         fprintf(fp, "%e %e % e % e % e %ld\n", K[b], P0[b], P2[b], P4[b], P6[b], N[b]);

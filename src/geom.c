@@ -3,7 +3,13 @@
 #include <assert.h>
 #include <time.h>
 #include <math.h>
-#include "box.h"
+#include "geom.h"
+
+
+static double pow2(double x)
+{
+    return x*x;
+}
 
 
 void pbc(double *x, double *y, double *z, long long int Np3, double L)
@@ -46,4 +52,33 @@ long long int subbox(double *x, double *y, double *z, long long int Np3, double 
     if(Np3sb!=Np3 && percentage>99.)
         fprintf(stderr, "warning: subbox() thinks something is leaking\n");
     return Np3sb;
+}
+
+long long int subsphere(double *x, double *y, double *z, long long int Np3, double XYZR[4],
+        double **xss, double **yss, double **zss, long long int Np3ss_max)
+{
+    double X = XYZR[0], Y = XYZR[1], Z = XYZR[2], R = XYZR[3];
+    double R2 = R*R;
+    *xss = (double *)malloc(Np3ss_max * sizeof(double)); assert(*xss!=NULL);
+    *yss = (double *)malloc(Np3ss_max * sizeof(double)); assert(*yss!=NULL);
+    *zss = (double *)malloc(Np3ss_max * sizeof(double)); assert(*zss!=NULL);
+    long long int p, Np3ss;
+    clock_t t = clock();
+    for(p=0, Np3ss=0; p<Np3 && Np3ss<Np3ss_max; ++p)
+        if(pow2(x[p]-X) + pow2(y[p]-Y) + pow2(z[p]-Z) < R2){
+            (*xss)[Np3ss] = x[p];
+            (*yss)[Np3ss] = y[p];
+            (*zss)[Np3ss] = z[p];
+            ++ Np3ss;
+        }
+    assert(p == Np3);
+    *xss = (double *)realloc(*xss, Np3ss * sizeof(double)); assert(*xss!=NULL);
+    *yss = (double *)realloc(*yss, Np3ss * sizeof(double)); assert(*yss!=NULL);
+    *zss = (double *)realloc(*zss, Np3ss * sizeof(double)); assert(*zss!=NULL);
+    double percentage = 100.*Np3ss/Np3;
+    fprintf(stderr, "subsphere() %.3fs to pick out %lld/%lld particles (%.2f%%)\n",
+            (double)(clock()-t)/CLOCKS_PER_SEC, Np3ss, Np3, percentage);
+    if(Np3ss!=Np3 && percentage>99.)
+        fprintf(stderr, "warning: subsphere() thinks something is leaking\n");
+    return Np3ss;
 }

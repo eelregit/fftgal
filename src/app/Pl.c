@@ -6,7 +6,7 @@
 #include <math.h>
 #include "../fftgal.h"
 #include "../power.h"
-#include "../box.h"
+#include "../geom.h"
 #include "../io/qpm.h"
 
 
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     assert(Np3>0);
     pbc(x, y, z, Np3, L);
 
-    fftgal_t *fg = fftgal_init(Ng, L, fold, wisdom);
+    fftgal_t *fg = fftgal_init(Ng, L, -1, fold, wisdom);
 
     fprintf(stderr, "\n################## has rsd ##################\n\n");
     double *xd=NULL, *yd=NULL, *zd=NULL;

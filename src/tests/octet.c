@@ -10,7 +10,7 @@ int main()
 
     int Ng = 2;
     double L = 2.;
-    fftgal_t *octet = fftgal_init(Ng, L, 1, "FFTW_ESTIMATE");
+    fftgal_t *octet = fftgal_init(Ng, L, -1, 1, "FFTW_ESTIMATE");
 
     int Np = 1;
     double x[1] = {0.}, y[1] = {0.}, z[1] = {0.};

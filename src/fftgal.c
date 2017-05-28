@@ -20,11 +20,15 @@ static double pow3(double x)
 }
 
 
-fftgal_t *fftgal_init(int Ng, double L, int fold, char wisdom[])
+fftgal_t *fftgal_init(int Ng, double L, double V, int fold, char wisdom[])
 {
     fftgal_t *self = (fftgal_t *)malloc(sizeof(fftgal_t)); assert(self!=NULL);
     self->Ng = Ng;
     self->L = L;
+    if(V > 0)
+        self->V = V;
+    else
+        self->V = pow3(L);
     self->fold = fold;
     self->Np3 = 0; /* until painted */
     for(int i=0; i<3; ++i)
@@ -106,9 +110,10 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
         for(int kk=0; kk<4; ++kk)
             F(self, i[ii], j[jj], k[kk]) += wx[ii] * wy[jj] * wz[kk];
     }
-    double Ng3perNp3 = pow3(Ng * self->fold) / Np3;
+    double gpp = pow3(Ng * self->fold) / Np3; /* grid per particle, inverse density */
+    gpp *= self->V / pow3(self->L);
     for(long int g=0; g<self->Ng3_pad; ++g)
-        self->f[g] *= Ng3perNp3;
+        self->f[g] *= gpp;
     fprintf(stderr, "fftgal_x2fx() %.3fs to paint %lld particles to %d^3 grid\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Np3, Ng);
 }

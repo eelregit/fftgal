@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     int Np3 = qpm_cubic_mocks_read(catalog, &x, &y, &z, &vx, &vy, &vz, &M, &issat);
     assert(Np3>0);
 
-    fftgal_t *fg = fftgal_init(Ng, L, 1, wisdom);
+    fftgal_t *fg = fftgal_init(Ng, L, -1, 1, wisdom);
 
     double *fk_copy = NULL;
     double Wamp[Ng], Wpha[3*Ng][2]; /* subbox smoothing */

@@ -18,13 +18,15 @@ typedef struct {
     long int Ng3_pad; /* sizeof(f) / sizeof(double) */
     long long int Np3;
     double L;
+    double V; /* L^3 or volume for non-cubic geometry */
     int fold; /* folded length is L/fold */
     double offset[3]; /* mesh (Dirac comb Ш) wrt boundary */
 } fftgal_t;
 
 
-/* allocate f[] and plan fftw */
-fftgal_t *fftgal_init(int Ng, double L, int fold, char wisdom[]);
+/* allocate f[] and plan fftw
+ * set V<0 for cubes */
+fftgal_t *fftgal_init(int Ng, double L, double V, int fold, char wisdom[]);
 
 
 /* paint , forward FFT, and deconvolve paintbrush */
