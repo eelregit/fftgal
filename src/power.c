@@ -57,9 +57,10 @@ void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
 }
 
 
-int Pl(fftgal_t *fg, double dK, double los[3], char *output)
+int Pl(fftgal_t *fg, double dK, int Kstep, double los[3], char *output)
 {
     int Ng = fg->Ng;
+    assert(Kstep>0 && Kstep<=8);
     double *loshat = hat(los);
     double KF = 2*M_PI / fg->L;
     double dKinv = KF / dK;
@@ -81,9 +82,9 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
         Kval[i] = i;
         Kval[Ng-i] = - i;
     }
-    for(int i=0; i<Ng; ++i)
-    for(int j=0; j<Ng; ++j)
-    for(int k=(i==0 && j==0); k<=Ng/2; ++k){ /* skip {0,0,0} */
+    for(int i=0; i<Ng; i+=Kstep)
+    for(int j=0; j<Ng; j+=Kstep)
+    for(int k=(i==0 && j==0); k<=Ng/2; k+=Kstep){ /* skip {0,0,0} */
         double Kamp = sqrt(pow2(Kval[i]) + pow2(Kval[j]) + pow2(Kval[k]));
         int b = (int)floor(Kamp * dKinv);
         int count = 1 + (2*k%Ng > 0);
@@ -110,7 +111,7 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
         P6[b] *= 13. / (V * N[b]);
         Ntot += N[b];
     }
-    assert(Ntot == Ng*Ng*Ng-1);
+    assert(Kstep!=1 || Ntot==Ng*Ng*Ng-1);
 
     FILE *fp = fopen(output, "w"); assert(fp!=NULL);
     fprintf(fp, "# Nb Ng Np3 L dK los[3]\n");

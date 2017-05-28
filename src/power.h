@@ -13,5 +13,7 @@ void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
         double los[3], double aH);
 
 /* multipoles, return number of bins
- * Pl all proportional to P0 when los[]={0,0,0} */
-int Pl(fftgal_t *fg, double dK, double los[3], char *output);
+ * Pl all proportional to P0 when los[]={0,0,0}
+ * sample every Kstep and ignore the other K's
+ */
+int Pl(fftgal_t *fg, double dK, int Kstep, double los[3], char *output);

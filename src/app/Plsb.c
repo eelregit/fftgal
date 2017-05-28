@@ -82,7 +82,8 @@ int main(int argc, char *argv[])
                     outdir, a, catid, ilos, jlos, klos, isb, jsb, ksb);
             assert(ret>=0 && ret<maxlen);
             double dK = 0.01;
-            Pl(fg, dK, los, outfile);
+            int Kstep = 1;
+            Pl(fg, dK, Kstep, los, outfile);
         }
         assert(Np3sbtot==Np3);
     }
@@ -115,7 +116,8 @@ int main(int argc, char *argv[])
                     outdir, a, catid, ilos, jlos, klos, isb, jsb, ksb);
             assert(ret>=0 && ret<maxlen);
             double dK = 0.01;
-            Pl(fg, dK, los, outfile);
+            int Kstep = 1;
+            Pl(fg, dK, Kstep, los, outfile);
         }
     }
     assert(Np3sbtot==Np3);

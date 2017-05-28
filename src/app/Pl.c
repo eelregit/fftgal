@@ -20,17 +20,18 @@ double H(double a)
 
 int main(int argc, char *argv[])
 {
-    if(argc!=8){
-        fprintf(stderr, "Usage: %s Ng L wisdom catdir a catid outdir\n", argv[0]);
+    if(argc!=9){
+        fprintf(stderr, "Usage: %s Ng L wisdom Kstep catdir a catid outdir\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
     double L = atof(argv[2]); assert(L>0. && L<1e4);
     char *wisdom = argv[3];
-    char *catdir = argv[4];
-    double a = atof(argv[5]); assert(a>0. && a<1.1);
-    int catid = atoi(argv[6]); assert(catid>=1 && catid<=1000);
-    char *outdir = argv[7];
+    int Kstep = atoi(argv[4]); assert(Kstep>0 && Kstep<=8);
+    char *catdir = argv[5];
+    double a = atof(argv[6]); assert(a>0. && a<1.1);
+    int catid = atoi(argv[7]); assert(catid>=1 && catid<=1000);
+    char *outdir = argv[8];
 
     const int maxlen = 1024;
     char catalog[maxlen];
@@ -65,7 +66,7 @@ int main(int argc, char *argv[])
                 outdir, a, catid, ilos, jlos, klos);
         assert(ret>=0 && ret<maxlen);
         double dK = 0.01;
-        Pl(fg, dK, los, outfile);
+        Pl(fg, dK, Kstep, los, outfile);
     }
 
     fprintf(stderr, "\n################ without rsd ################\n\n");
@@ -82,7 +83,7 @@ int main(int argc, char *argv[])
                 outdir, a, catid, ilos, jlos, klos);
         assert(ret>=0 && ret<maxlen);
         double dK = 0.01;
-        Pl(fg, dK, los, outfile);
+        Pl(fg, dK, Kstep, los, outfile);
     }
 
     free(x); free(y); free(z); free(vx); free(vy); free(vz); free(M); free(issat);
