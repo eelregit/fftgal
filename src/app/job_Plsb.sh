@@ -15,7 +15,7 @@ a=0.6452
 outdir=$SCRATCH/ssm.d
 
 echo ${SLURM_JOB_ID} starting $(date) on $(hostname)
-module load fftw gcc
+module load gcc fftw gsl
 make Plsb
 for catid in $@
 do

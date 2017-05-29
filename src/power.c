@@ -3,25 +3,14 @@
 #include <assert.h>
 #include <time.h>
 #include <math.h>
+#include <gsl/gsl_math.h>
 #include "power.h"
-#ifndef M_PI
-    #define M_PI 3.14159265358979323846
-#endif
 
-
-static double pow2(double x)
-{
-    return x*x;
-}
-static double pow3(double x)
-{
-    return x*x*x;
-}
 
 double *hat(double los[3])
 {
     static double loshat[3];
-    double losamp = sqrt(pow2(los[0]) + pow2(los[1]) + pow2(los[2]));
+    double losamp = sqrt(gsl_pow_2(los[0]) + gsl_pow_2(los[1]) + gsl_pow_2(los[2]));
     if(losamp > 1e-7){
         loshat[0] = los[0] / losamp;
         loshat[1] = los[1] / losamp;
@@ -84,12 +73,12 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
     for(int i=0; i<Ng; ++i)
     for(int j=0; j<Ng; ++j)
     for(int k=(i==0 && j==0); k<=Ng/2; ++k){ /* skip {0,0,0} */
-        double Kamp = sqrt(pow2(Kval[i]) + pow2(Kval[j]) + pow2(Kval[k]));
+        double Kamp = sqrt(gsl_pow_2(Kval[i]) + gsl_pow_2(Kval[j]) + gsl_pow_2(Kval[k]));
         int b = (int)floor(Kamp * dKinv);
         int count = 1 + (2*k%Ng > 0);
-        double delta2 = pow2(F_Re(fg,i,j,k)) + pow2(F_Im(fg,i,j,k));
+        double delta2 = gsl_pow_2(F_Re(fg,i,j,k)) + gsl_pow_2(F_Im(fg,i,j,k));
         delta2 *= count;
-        double mu2 = pow2((Kval[i]*loshat[0] + Kval[j]*loshat[1] + Kval[k]*loshat[2]) / Kamp);
+        double mu2 = gsl_pow_2((Kval[i]*loshat[0] + Kval[j]*loshat[1] + Kval[k]*loshat[2]) / Kamp);
         K[b] += count * Kamp;
         P0[b] += delta2;
         P2[b] += delta2 * (1.5*mu2 - 0.5);
@@ -104,6 +93,7 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
     for(int b=0; b<Nb; ++b){
         K[b] *= KF / N[b];
         P0[b] *= 1. / (fg->V * N[b]);
+        P0[b] -= gsl_pow_6(fg->L) / fg->V / fg->Np3; /* HACK: subtract shot noise */
         P2[b] *= 5. / (fg->V * N[b]);
         P4[b] *= 9. / (fg->V * N[b]);
         P6[b] *= 13. / (fg->V * N[b]);

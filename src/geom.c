@@ -3,13 +3,9 @@
 #include <assert.h>
 #include <time.h>
 #include <math.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_rng.h>
 #include "geom.h"
-
-
-static double pow2(double x)
-{
-    return x*x;
-}
 
 
 void pbc(double *x, double *y, double *z, long long int Np3, double L)
@@ -22,6 +18,14 @@ void pbc(double *x, double *y, double *z, long long int Np3, double L)
         z[p] -= L * floor(z[p] * Linv);
     }
     fprintf(stderr, "pbc() %.3fs to wrap around\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+}
+
+double pdist2(double x1, double y1, double z1, double x2, double y2, double z2, double L)
+{
+    double dx = remainder(x1-x2, L);
+    double dy = remainder(y1-y2, L);
+    double dz = remainder(z1-z2, L);
+    return dx*dx + dy*dy + dz*dz;
 }
 
 long long int subbox(double *x, double *y, double *z, long long int Np3, double xyzlim[6],
@@ -54,31 +58,48 @@ long long int subbox(double *x, double *y, double *z, long long int Np3, double 
     return Np3sb;
 }
 
-long long int subsphere(double *x, double *y, double *z, long long int Np3, double XYZR[4],
-        double **xss, double **yss, double **zss, long long int Np3ss_max)
+long long int subsphere(double *x, double *y, double *z, long long int Np3, double XYZRL[5],
+        double **xsb, double **ysb, double **zsb, long long int Np3ss_max)
 {
-    double X = XYZR[0], Y = XYZR[1], Z = XYZR[2], R = XYZR[3];
+    double X = XYZRL[0], Y = XYZRL[1], Z = XYZRL[2], R = XYZRL[3], L=XYZRL[4];
     double R2 = R*R;
-    *xss = (double *)malloc(Np3ss_max * sizeof(double)); assert(*xss!=NULL);
-    *yss = (double *)malloc(Np3ss_max * sizeof(double)); assert(*yss!=NULL);
-    *zss = (double *)malloc(Np3ss_max * sizeof(double)); assert(*zss!=NULL);
+    *xsb = (double *)malloc(Np3ss_max * sizeof(double)); assert(*xsb!=NULL);
+    *ysb = (double *)malloc(Np3ss_max * sizeof(double)); assert(*ysb!=NULL);
+    *zsb = (double *)malloc(Np3ss_max * sizeof(double)); assert(*zsb!=NULL);
     long long int p, Np3ss;
     clock_t t = clock();
     for(p=0, Np3ss=0; p<Np3 && Np3ss<Np3ss_max; ++p)
-        if(pow2(x[p]-X) + pow2(y[p]-Y) + pow2(z[p]-Z) < R2){
-            (*xss)[Np3ss] = x[p];
-            (*yss)[Np3ss] = y[p];
-            (*zss)[Np3ss] = z[p];
+        if(pdist2(x[p], y[p], z[p], X, Y, Z, L) < R2){
+            (*xsb)[Np3ss] = x[p];
+            (*ysb)[Np3ss] = y[p];
+            (*zsb)[Np3ss] = z[p];
             ++ Np3ss;
         }
     assert(p == Np3);
-    *xss = (double *)realloc(*xss, Np3ss * sizeof(double)); assert(*xss!=NULL);
-    *yss = (double *)realloc(*yss, Np3ss * sizeof(double)); assert(*yss!=NULL);
-    *zss = (double *)realloc(*zss, Np3ss * sizeof(double)); assert(*zss!=NULL);
-    double percentage = 100.*Np3ss/Np3;
-    fprintf(stderr, "subsphere() %.3fs to pick out %lld/%lld particles (%.2f%%)\n",
-            (double)(clock()-t)/CLOCKS_PER_SEC, Np3ss, Np3, percentage);
-    if(Np3ss!=Np3 && percentage>99.)
-        fprintf(stderr, "warning: subsphere() thinks something is leaking\n");
-    return Np3ss;
+    /* fill the remaining space of the bounding box with Np3rand = Np3sb-Np3ss,
+     * with the shot noise kept the same */
+    long long int Np3sb = round(6/M_PI * Np3ss);
+    *xsb = (double *)realloc(*xsb, Np3sb * sizeof(double)); assert(*xsb!=NULL);
+    *ysb = (double *)realloc(*ysb, Np3sb * sizeof(double)); assert(*ysb!=NULL);
+    *zsb = (double *)realloc(*zsb, Np3sb * sizeof(double)); assert(*zsb!=NULL);
+    static gsl_rng *rng = NULL;
+    if(rng == NULL){
+        gsl_rng_env_setup();
+        rng = gsl_rng_alloc(gsl_rng_default);
+    }
+    for(p=Np3ss; p<Np3sb; ++p){
+        double xrand, yrand, zrand;
+        do{
+            xrand = X + R * (2*gsl_rng_uniform(rng) - 1);
+            yrand = Y + R * (2*gsl_rng_uniform(rng) - 1);
+            zrand = Z + R * (2*gsl_rng_uniform(rng) - 1);
+        }while(pdist2(xrand, yrand, zrand, X, Y, Z, L) < R2);
+        (*xsb)[p] = xrand;
+        (*ysb)[p] = yrand;
+        (*zsb)[p] = zrand;
+    }
+    double percentage = 100.*Np3sb/Np3;
+    fprintf(stderr, "subsphere() %.3fs to pick out %lld(%lld)/%lld particles (%.2f%%)\n",
+            (double)(clock()-t)/CLOCKS_PER_SEC, Np3sb, Np3ss, Np3, percentage);
+    return Np3sb;
 }

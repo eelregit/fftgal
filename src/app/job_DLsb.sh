@@ -3,7 +3,7 @@
 #SBATCH --partition=shared
 #SBATCH --time=2:00:00
 #SBATCH --job-name=DLsb
-#SBATCH --output=DLsb%j.out
+#SBATCH --output=DL%j.out
 
 DLsb=$SCRATCH/fftgal/DLsb
 Ng=512
@@ -15,7 +15,7 @@ a=0.6452
 outdir=$SCRATCH/ssm.d
 
 echo ${SLURM_JOB_ID} starting $(date) on $(hostname)
-module load fftw gcc
+module load gcc fftw gsl
 make DLsb
 for catid in $@
 do

@@ -4,13 +4,11 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
+#include <gsl/gsl_math.h>
 #include "../fftgal.h"
 #include "../power.h"
 #include "../geom.h"
 #include "../io/qpm.h"
-#ifndef M_PI
-    #define M_PI 3.14159265358979323846
-#endif
 
 
 double H(double a)
@@ -52,7 +50,7 @@ int main(int argc, char *argv[])
 
     fprintf(stderr, "\n################## has rsd ##################\n\n");
     double *xd=NULL, *yd=NULL, *zd=NULL;
-    double *xss=NULL, *yss=NULL, *zss=NULL;
+    double *xsb=NULL, *ysb=NULL, *zsb=NULL;
     for(int ilos=0; ilos<2; ++ilos)
     for(int jlos=0; jlos<2; ++jlos)
     for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){ /* skip {0,0,0}, {1,1,1} */
@@ -69,13 +67,13 @@ int main(int argc, char *argv[])
         for(int jss=0; jss<Nss; ++jss)
         for(int kss=0; kss<Nss; ++kss){
             fprintf(stderr, "---------------- sub-vol div ----------------\n");
-            if(xss!=NULL) free(xss);
-            if(yss!=NULL) free(yss);
-            if(zss!=NULL) free(zss);
-            double XYZR[4] = {iss*R, jss*R, kss*R, R};
-            int Np3ss = subsphere(xd, yd, zd, Np3, XYZR, &xss, &yss, &zss, Np3);
+            if(xsb!=NULL) free(xsb);
+            if(ysb!=NULL) free(ysb);
+            if(zsb!=NULL) free(zsb);
+            double XYZRL[5] = {iss*R, jss*R, kss*R, R, L};
+            int Np3sb = subsphere(xd, yd, zd, Np3, XYZRL, &xsb, &ysb, &zsb, Np3);
 
-            fftgal_x2fk(fg, xss, yss, zss, Np3ss);
+            fftgal_x2fk(fg, xsb, ysb, zsb, Np3sb);
 
             char outfile[maxlen];
             ret = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd1_los%d%d%d_ss%d%d%d.txt",
@@ -91,13 +89,13 @@ int main(int argc, char *argv[])
     for(int jss=0; jss<Nss; ++jss)
     for(int kss=0; kss<Nss; ++kss){
         fprintf(stderr, "================ sub-vol div ================\n");
-        if(xss!=NULL) free(xss);
-        if(yss!=NULL) free(yss);
-        if(zss!=NULL) free(zss);
-        double XYZR[4] = {iss*R, jss*R, kss*R, R};
-        int Np3ss = subsphere(x, y, z, Np3, XYZR, &xss, &yss, &zss, Np3);
+        if(xsb!=NULL) free(xsb);
+        if(ysb!=NULL) free(ysb);
+        if(zsb!=NULL) free(zsb);
+        double XYZRL[5] = {iss*R, jss*R, kss*R, R, L};
+        int Np3sb = subsphere(x, y, z, Np3, XYZRL, &xsb, &ysb, &zsb, Np3);
 
-        fftgal_x2fk(fg, xss, yss, zss, Np3ss);
+        fftgal_x2fk(fg, xsb, ysb, zsb, Np3sb);
 
         for(int ilos=0; ilos<2; ++ilos)
         for(int jlos=0; jlos<2; ++jlos)
@@ -116,7 +114,7 @@ int main(int argc, char *argv[])
 
     free(x); free(y); free(z); free(vx); free(vy); free(vz); free(M); free(issat);
     free(xd); free(yd); free(zd);
-    free(xss); free(yss); free(zss);
+    free(xsb); free(ysb); free(zsb);
     fftgal_free(fg);
     return 0;
 }

@@ -1,4 +1,4 @@
-/* measure super-sample modes from subboxes */
+/* measure super-sample modes from sub-spheres */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,21 +14,27 @@
 const double bias = 1.;
 
 
+static double tophat(double KR) /* KR!=0 */
+{
+    return 3 * (sin(KR) - KR*cos(KR)) / gsl_pow_3(KR);
+}
+
+
 int main(int argc, char *argv[])
 {
     if(argc!=9){
-        fprintf(stderr, "Usage: %s Ng L wisdom Nsb catdir a catid outdir\n", argv[0]);
+        fprintf(stderr, "Usage: %s Ng L wisdom Nss catdir a catid outdir\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
     double L = atof(argv[2]); assert(L>0. && L<1e4);
     char *wisdom = argv[3];
-    int Nsb = atoi(argv[4]); assert(Nsb>0 && Nsb<=8);
+    int Nss = atoi(argv[4]); assert(Nss>0 && Nss<=8);
     char *catdir = argv[5];
     double a = atof(argv[6]); assert(a>0. && a<1.1);
     int catid = atoi(argv[7]); assert(catid>=1 && catid<=1000);
     char *outdir = argv[8];
-    int Ngsb = Ng / Nsb; assert(Ng%Nsb==0);
+    int Ngss = Ng / Nss; assert(Ng%Nss==0);
 
     const int maxlen = 1024;
     char catalog[maxlen];
@@ -42,14 +48,6 @@ int main(int argc, char *argv[])
     fftgal_t *fg = fftgal_init(Ng, L, -1, 1, wisdom);
 
     double *fk_copy = NULL;
-    double Wamp[Ng], Wpha[3*Ng][2]; /* subbox smoothing */
-    Wamp[0] = 1.;
-    for(int i=1; i<Ng; ++i)
-        Wamp[i] = sin(M_PI * i / Nsb) / sin(M_PI * i / Ng) / Ngsb;
-    for(int i=0; i<3*Ng; ++i){
-        Wpha[i][0] = cos(M_PI * i * (Ngsb-1) / Ng);
-        Wpha[i][1] = sin(M_PI * i * (Ngsb-1) / Ng);
-    }
     for(int ilos=0; ilos<2; ++ilos)
     for(int jlos=0; jlos<2; ++jlos)
     for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){ /* skip {0,0,0}, {1,1,1} */
@@ -60,10 +58,10 @@ int main(int argc, char *argv[])
         loshat[1] = jlos / losamp;
         loshat[2] = klos / losamp;
 
-        double DeltaL[3*Nsb*Nsb*Nsb];
+        double DeltaL[3*Nss*Nss*Nss];
         for(int L_half=0; L_half<=2; ++L_half){
             if(fk_copy==NULL){
-                double offset[3] = {0.5, 0.5, 0.5};
+                double offset[3] = {0., 0., 0.};
                 fftgal_x2fx(fg, x, y, z, Np3, offset);
                 fftgal_fx2fk(fg);
                 fk_copy = fftgal_exportf(fg);
@@ -84,35 +82,31 @@ int main(int argc, char *argv[])
                 double Kamp = sqrt(gsl_pow_2(Kval[i]) + gsl_pow_2(Kval[j]) + gsl_pow_2(Kval[k]));
                 double mu2 = gsl_pow_2((Kval[i]*loshat[0] + Kval[j]*loshat[1] + Kval[k]*loshat[2]) / Kamp);
                 double Legendre[3] = {1., 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
-                double Wamp3 = Wamp[i] * Wamp[j] * Wamp[k];
-                double ReW = Wpha[i+j+k][0] * Wamp3;
-                double ImW = Wpha[i+j+k][1] * Wamp3;
-                double Red = F_Re(fg,i,j,k);
-                double Imd = F_Im(fg,i,j,k);
-                F_Re(fg,i,j,k) = Legendre[L_half] * (Red*ReW - Imd*ImW);
-                F_Im(fg,i,j,k) = Legendre[L_half] * (Red*ImW + Imd*ReW);
+                double W = tophat(Kamp * 2*M_PI / Nss);
+                F_Re(fg,i,j,k) *= Legendre[L_half] * W;
+                F_Im(fg,i,j,k) *= Legendre[L_half] * W;
             }
 
             fftgal_fk2fx(fg);
-            for(int isb=0; isb<Nsb; ++isb)
-            for(int jsb=0; jsb<Nsb; ++jsb)
-            for(int ksb=0; ksb<Nsb; ++ksb)
-                DeltaL[((L_half*Nsb + isb)*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb) / bias;
+            for(int iss=0; iss<Nss; ++iss)
+            for(int jss=0; jss<Nss; ++jss)
+            for(int kss=0; kss<Nss; ++kss)
+                DeltaL[((L_half*Nss + iss)*Nss + jss)*Nss + kss] = F(fg, iss*Ngss, jss*Ngss, kss*Ngss) / bias;
         }
 
         char outfile[maxlen];
-        ret = snprintf(outfile, maxlen, "%s/a%.4f_%04d/DLsb_los%d%d%d.txt",
+        ret = snprintf(outfile, maxlen, "%s/a%.4f_%04d/DLss_los%d%d%d.txt",
                 outdir, a, catid, ilos, jlos, klos);
         assert(ret>=0 && ret<maxlen);
         FILE *fp = fopen(outfile, "w"); assert(fp!=NULL);
-        fprintf(fp, "# ijk_sb Delta_0 Delta_2 Delta_4\n");
-        for(int isb=0; isb<Nsb; ++isb)
-        for(int jsb=0; jsb<Nsb; ++jsb)
-        for(int ksb=0; ksb<Nsb; ++ksb)
-            fprintf(fp, "%d%d%d % e % e % e\n", isb, jsb, ksb,
-                    DeltaL[((0*Nsb + isb)*Nsb + jsb)*Nsb + ksb],
-                    DeltaL[((1*Nsb + isb)*Nsb + jsb)*Nsb + ksb],
-                    DeltaL[((2*Nsb + isb)*Nsb + jsb)*Nsb + ksb]);
+        fprintf(fp, "# ijk_ss Delta_0 Delta_2 Delta_4\n");
+        for(int iss=0; iss<Nss; ++iss)
+        for(int jss=0; jss<Nss; ++jss)
+        for(int kss=0; kss<Nss; ++kss)
+            fprintf(fp, "%d%d%d % e % e % e\n", iss, jss, kss,
+                    DeltaL[((0*Nss + iss)*Nss + jss)*Nss + kss],
+                    DeltaL[((1*Nss + iss)*Nss + jss)*Nss + kss],
+                    DeltaL[((2*Nss + iss)*Nss + jss)*Nss + kss]);
         fclose(fp);
     }
 

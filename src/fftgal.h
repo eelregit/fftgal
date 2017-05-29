@@ -25,7 +25,8 @@ typedef struct {
 
 
 /* allocate f[] and plan fftw
- * set V<0 for cubes */
+ * set V<0 for cubes
+ * set 0<V<L^3 for other geometry bounded by the cube */
 fftgal_t *fftgal_init(int Ng, double L, double V, int fold, char wisdom[]);
 
 

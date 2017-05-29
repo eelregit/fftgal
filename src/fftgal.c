@@ -4,20 +4,8 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
+#include <gsl/gsl_math.h>
 #include "fftgal.h"
-#ifndef M_PI
-    #define M_PI 3.14159265358979323846
-#endif
-
-
-static double pow2(double x)
-{
-    return x*x;
-}
-static double pow3(double x)
-{
-    return x*x*x;
-}
 
 
 fftgal_t *fftgal_init(int Ng, double L, double V, int fold, char wisdom[])
@@ -28,7 +16,7 @@ fftgal_t *fftgal_init(int Ng, double L, double V, int fold, char wisdom[])
     if(V > 0)
         self->V = V;
     else
-        self->V = pow3(L);
+        self->V = gsl_pow_3(L);
     self->fold = fold;
     self->Np3 = 0; /* until painted */
     for(int i=0; i<3; ++i)
@@ -99,19 +87,18 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
         int i[4] = {(xint - 1 + Ng) % Ng, xint, (xint + 1) % Ng, (xint + 2) % Ng};
         int j[4] = {(yint - 1 + Ng) % Ng, yint, (yint + 1) % Ng, (yint + 2) % Ng};
         int k[4] = {(zint - 1 + Ng) % Ng, zint, (zint + 1) % Ng, (zint + 2) % Ng};
-        double wx[4] = {pow3(1 - dx) / 6, ((3*dx - 6)*pow2(dx) + 4) / 6,
-                    (((-3*dx + 3)*dx + 3)*dx + 1) / 6, pow3(dx) / 6};
-        double wy[4] = {pow3(1 - dy) / 6, ((3*dy - 6)*pow2(dy) + 4) / 6,
-                    (((-3*dy + 3)*dy + 3)*dy + 1) / 6, pow3(dy) / 6};
-        double wz[4] = {pow3(1 - dz) / 6, ((3*dz - 6)*pow2(dz) + 4) / 6,
-                    (((-3*dz + 3)*dz + 3)*dz + 1) / 6, pow3(dz) / 6};
+        double wx[4] = {gsl_pow_3(1 - dx) / 6, ((3*dx - 6)*gsl_pow_2(dx) + 4) / 6,
+                    (((-3*dx + 3)*dx + 3)*dx + 1) / 6, gsl_pow_3(dx) / 6};
+        double wy[4] = {gsl_pow_3(1 - dy) / 6, ((3*dy - 6)*gsl_pow_2(dy) + 4) / 6,
+                    (((-3*dy + 3)*dy + 3)*dy + 1) / 6, gsl_pow_3(dy) / 6};
+        double wz[4] = {gsl_pow_3(1 - dz) / 6, ((3*dz - 6)*gsl_pow_2(dz) + 4) / 6,
+                    (((-3*dz + 3)*dz + 3)*dz + 1) / 6, gsl_pow_3(dz) / 6};
         for(int ii=0; ii<4; ++ii)
         for(int jj=0; jj<4; ++jj)
         for(int kk=0; kk<4; ++kk)
             F(self, i[ii], j[jj], k[kk]) += wx[ii] * wy[jj] * wz[kk];
     }
-    double gpp = pow3(Ng * self->fold) / Np3; /* grid per particle, inverse density */
-    gpp *= self->V / pow3(self->L);
+    double gpp = gsl_pow_3(Ng * self->fold) / Np3; /* grid per particle, inverse density */
     for(long int g=0; g<self->Ng3_pad; ++g)
         self->f[g] *= gpp;
     fprintf(stderr, "fftgal_x2fx() %.3fs to paint %lld particles to %d^3 grid\n",
@@ -123,7 +110,7 @@ void fftgal_fx2fk(fftgal_t *self)
 {
     clock_t t = clock();
     fftw_execute(self->fx2fk);
-    double H3 = pow3(self->L / self->fold / self->Ng);
+    double H3 = gsl_pow_3(self->L / self->fold / self->Ng);
     for(long int g=0; g<self->Ng3_pad; ++g)
         self->f[g] *= H3;
 
@@ -175,7 +162,7 @@ void fftgal_deconv(fftgal_t *self)
     winv[0] = 1.;
     for(int i=1; i<=Ng/2; ++i){
         double arg = M_PI * i / Ng;
-        winv[i] = pow2(pow2(arg / sin(arg)));
+        winv[i] = gsl_pow_4(arg / sin(arg));
         winv[Ng-i] = winv[i];
     }
     clock_t t = clock();
@@ -218,7 +205,7 @@ void fftgal_fk2fx(fftgal_t *self)
 {
     clock_t t = clock();
     fftw_execute(self->fk2fx);
-    double Vinv = pow3(self->fold / self->L);
+    double Vinv = gsl_pow_3(self->fold / self->L);
     for(long int g=0; g<self->Ng3_pad; ++g)
         self->f[g] *= Vinv;
     fprintf(stderr, "fftgal_fk2fx() %.3fs to FFT f(k) to f(x) on a %d^3 grid\n",
