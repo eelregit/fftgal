@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --ntasks=1
 #SBATCH --partition=shared
+#SBATCH --mem=3GB
 #SBATCH --time=2:00:00
 #SBATCH --job-name=Pl
 #SBATCH --output=Pl%j.out
