@@ -53,12 +53,12 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
     double KF = 2*M_PI * fg->fold / fg->L;
     double dKinv = KF / dK;
     int Nb = (int)floor(M_SQRT3*(Ng/2) * dKinv) + 1;
-    double *K = (double *)malloc(sizeof(double) * Nb); assert(K!=NULL);
-    double *P0 = (double *)malloc(sizeof(double) * Nb); assert(P0!=NULL);
-    double *P2 = (double *)malloc(sizeof(double) * Nb); assert(P2!=NULL);
-    double *P4 = (double *)malloc(sizeof(double) * Nb); assert(P4!=NULL);
-    double *P6 = (double *)malloc(sizeof(double) * Nb); assert(P6!=NULL);
-    long int *N = (long int *)malloc(sizeof(long int) * Nb); assert(N!=NULL);
+    double *K = (double *)malloc(Nb * sizeof(double)); assert(K!=NULL);
+    double *P0 = (double *)malloc(Nb * sizeof(double)); assert(P0!=NULL);
+    double *P2 = (double *)malloc(Nb * sizeof(double)); assert(P2!=NULL);
+    double *P4 = (double *)malloc(Nb * sizeof(double)); assert(P4!=NULL);
+    double *P6 = (double *)malloc(Nb * sizeof(double)); assert(P6!=NULL);
+    long int *N = (long int *)malloc(Nb * sizeof(long int)); assert(N!=NULL);
     for(int b=0; b<Nb; ++b){
         K[b] = P0[b] = P2[b] = P4[b] = P6[b] = 0.;
         N[b] = 0;

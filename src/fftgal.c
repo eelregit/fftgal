@@ -158,7 +158,7 @@ void fftgal_fx2fk(fftgal_t *self)
 void fftgal_deconv(fftgal_t *self)
 {
     int Ng = self->Ng;
-    double *winv = (double *)malloc(sizeof(double) * Ng); assert(winv!=NULL);
+    double *winv = (double *)malloc(Ng * sizeof(double)); assert(winv!=NULL);
     winv[0] = 1.;
     for(int i=1; i<=Ng/2; ++i){
         double arg = M_PI * i / Ng;
