@@ -1,15 +1,17 @@
 #!/bin/bash
 #SBATCH --ntasks=1
 #SBATCH --partition=shared
-#SBATCH --time=2:00:00
+#SBATCH --mem=3GB
+#SBATCH --time=9:00:00
 #SBATCH --job-name=Plsb
 #SBATCH --output=Pl%j.out
 
-Plsb=$SCRATCH/fftgal/Plsb
-Ng=128
+APP=$SCRATCH/fftgal/Plsb
+Ng=512
 L=2560
+dK=0.01
 wisdom=${Ng}.wsdm
-Nsb=4
+Nsub=4
 catdir=/project/projectdirs/boss/galaxy/QPM/dr12d_cubic_mocks
 a=0.6452
 outdir=$SCRATCH/ssm.d
@@ -20,6 +22,6 @@ make Plsb
 for catid in $@
 do
     log=$outdir/a${a}_$(printf '%04d' $catid)/Plsb.log
-    time $Plsb $Ng $L $wisdom $Nsb $catdir $a $catid $outdir 2> $log
+    time GSL_RNG_SEED=$catid $APP $Ng $L $dK $wisdom $Nsub $catdir $a $catid $outdir 2> $log
 done
 echo ${SLURM_JOB_ID} ending $(date)

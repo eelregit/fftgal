@@ -20,18 +20,19 @@ double H(double a)
 
 int main(int argc, char *argv[])
 {
-    if(argc!=9){
-        fprintf(stderr, "Usage: %s Ng L wisdom fold catdir a catid outdir\n", argv[0]);
+    if(argc!=10){
+        fprintf(stderr, "Usage: %s Ng L dK wisdom fold catdir a catid outdir\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
     double L = atof(argv[2]); assert(L>0. && L<1e4);
-    char *wisdom = argv[3];
-    int fold = atoi(argv[4]); assert(fold>0 && fold<=8);
-    char *catdir = argv[5];
-    double a = atof(argv[6]); assert(a>0. && a<1.1);
-    int catid = atoi(argv[7]); assert(catid>=1 && catid<=1000);
-    char *outdir = argv[8];
+    double dK = atof(argv[3]); assert(dK>0. && dK <.1);
+    char *wisdom = argv[4];
+    int fold = atoi(argv[5]); assert(fold>0 && fold<=8);
+    char *catdir = argv[6];
+    double a = atof(argv[7]); assert(a>0. && a<1.1);
+    int catid = atoi(argv[8]); assert(catid>=1 && catid<=1000);
+    char *outdir = argv[9];
 
     const int maxlen = 1024;
     char catalog[maxlen];
@@ -65,7 +66,6 @@ int main(int argc, char *argv[])
         ret = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd1_los%d%d%d.txt",
                 outdir, a, catid, ilos, jlos, klos);
         assert(ret>=0 && ret<maxlen);
-        double dK = 0.01;
         Pl(fg, dK, los, outfile);
     }
 
@@ -82,7 +82,6 @@ int main(int argc, char *argv[])
         ret = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd0_los%d%d%d.txt",
                 outdir, a, catid, ilos, jlos, klos);
         assert(ret>=0 && ret<maxlen);
-        double dK = 0.01;
         Pl(fg, dK, los, outfile);
     }
 

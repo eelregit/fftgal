@@ -2,13 +2,14 @@
 #SBATCH --ntasks=1
 #SBATCH --partition=shared
 #SBATCH --mem=3GB
-#SBATCH --time=2:00:00
+#SBATCH --time=3:00:00
 #SBATCH --job-name=Pl
 #SBATCH --output=Pl%j.out
 
-Pl=$SCRATCH/fftgal/Pl
+APP=$SCRATCH/fftgal/Pl
 Ng=512
 L=2560
+dK=0.01
 wisdom=${Ng}.wsdm
 fold=1
 catdir=/project/projectdirs/boss/galaxy/QPM/dr12d_cubic_mocks
@@ -21,6 +22,6 @@ make Pl
 for catid in $@
 do
     log=$outdir/a${a}_$(printf '%04d' $catid)/Pl.log
-    time $Pl $Ng $L $wisdom $fold $catdir $a $catid $outdir 2> $log
+    time $APP $Ng $L $dK $wisdom $fold $catdir $a $catid $outdir 2> $log
 done
 echo ${SLURM_JOB_ID} ending $(date)

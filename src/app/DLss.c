@@ -23,18 +23,18 @@ static double tophat(double KR) /* KR!=0 */
 int main(int argc, char *argv[])
 {
     if(argc!=9){
-        fprintf(stderr, "Usage: %s Ng L wisdom Nss catdir a catid outdir\n", argv[0]);
+        fprintf(stderr, "Usage: %s Ng L wisdom Nsub catdir a catid outdir\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
     double L = atof(argv[2]); assert(L>0. && L<1e4);
     char *wisdom = argv[3];
-    int Nss = atoi(argv[4]); assert(Nss>0 && Nss<=8);
+    int Nsub = atoi(argv[4]); assert(Nsub>=2 && Nsub<=8);
     char *catdir = argv[5];
     double a = atof(argv[6]); assert(a>0. && a<1.1);
     int catid = atoi(argv[7]); assert(catid>=1 && catid<=1000);
     char *outdir = argv[8];
-    int Ngss = Ng / Nss; assert(Ng%Nss==0);
+    int Ngsub = Ng / Nsub; assert(Ng%Nsub==0);
 
     const int maxlen = 1024;
     char catalog[maxlen];
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
         loshat[1] = jlos / losamp;
         loshat[2] = klos / losamp;
 
-        double DeltaL[3*Nss*Nss*Nss];
+        double DeltaL[3*Nsub*Nsub*Nsub];
         for(int L_half=0; L_half<=2; ++L_half){
             if(fk_copy==NULL){
                 double offset[3] = {0., 0., 0.};
@@ -82,16 +82,16 @@ int main(int argc, char *argv[])
                 double Kamp = sqrt(gsl_pow_2(Kval[i]) + gsl_pow_2(Kval[j]) + gsl_pow_2(Kval[k]));
                 double mu2 = gsl_pow_2((Kval[i]*loshat[0] + Kval[j]*loshat[1] + Kval[k]*loshat[2]) / Kamp);
                 double Legendre[3] = {1., 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
-                double W = tophat(Kamp * 2*M_PI / Nss);
+                double W = tophat(Kamp * M_PI*M_SQRT3 / Nsub);
                 F_Re(fg,i,j,k) *= Legendre[L_half] * W;
                 F_Im(fg,i,j,k) *= Legendre[L_half] * W;
             }
 
             fftgal_fk2fx(fg);
-            for(int iss=0; iss<Nss; ++iss)
-            for(int jss=0; jss<Nss; ++jss)
-            for(int kss=0; kss<Nss; ++kss)
-                DeltaL[((L_half*Nss + iss)*Nss + jss)*Nss + kss] = F(fg, iss*Ngss, jss*Ngss, kss*Ngss) / bias;
+            for(int isub=0; isub<Nsub; ++isub)
+            for(int jsub=0; jsub<Nsub; ++jsub)
+            for(int ksub=0; ksub<Nsub; ++ksub)
+                DeltaL[((L_half*Nsub + isub)*Nsub + jsub)*Nsub + ksub] = F(fg, isub*Ngsub, jsub*Ngsub, ksub*Ngsub) / bias;
         }
 
         char outfile[maxlen];
@@ -99,14 +99,14 @@ int main(int argc, char *argv[])
                 outdir, a, catid, ilos, jlos, klos);
         assert(ret>=0 && ret<maxlen);
         FILE *fp = fopen(outfile, "w"); assert(fp!=NULL);
-        fprintf(fp, "# ijk_ss Delta_0 Delta_2 Delta_4\n");
-        for(int iss=0; iss<Nss; ++iss)
-        for(int jss=0; jss<Nss; ++jss)
-        for(int kss=0; kss<Nss; ++kss)
-            fprintf(fp, "%d%d%d % e % e % e\n", iss, jss, kss,
-                    DeltaL[((0*Nss + iss)*Nss + jss)*Nss + kss],
-                    DeltaL[((1*Nss + iss)*Nss + jss)*Nss + kss],
-                    DeltaL[((2*Nss + iss)*Nss + jss)*Nss + kss]);
+        fprintf(fp, "# ijk_sub Delta_0 Delta_2 Delta_4\n");
+        for(int isub=0; isub<Nsub; ++isub)
+        for(int jsub=0; jsub<Nsub; ++jsub)
+        for(int ksub=0; ksub<Nsub; ++ksub)
+            fprintf(fp, "%d%d%d % e % e % e\n", isub, jsub, ksub,
+                    DeltaL[((0*Nsub + isub)*Nsub + jsub)*Nsub + ksub],
+                    DeltaL[((1*Nsub + isub)*Nsub + jsub)*Nsub + ksub],
+                    DeltaL[((2*Nsub + isub)*Nsub + jsub)*Nsub + ksub]);
         fclose(fp);
     }
 

@@ -21,18 +21,19 @@ double H(double a)
 
 int main(int argc, char *argv[])
 {
-    if(argc!=9){
-        fprintf(stderr, "Usage: %s Ng L wisdom Nss catdir a catid outdir\n", argv[0]);
+    if(argc!=10){
+        fprintf(stderr, "Usage: %s Ng L dK wisdom Nsub catdir a catid outdir\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
     double L = atof(argv[2]); assert(L>0. && L<1e4);
-    char *wisdom = argv[3];
-    int Nss = atoi(argv[4]); assert(Nss>0 && Nss<=8);
-    char *catdir = argv[5];
-    double a = atof(argv[6]); assert(a>0. && a<1.1);
-    int catid = atoi(argv[7]); assert(catid>=1 && catid<=1000);
-    char *outdir = argv[8];
+    double dK = atof(argv[3]); assert(dK>0. && dK <.1);
+    char *wisdom = argv[4];
+    int Nsub = atoi(argv[5]); assert(Nsub>=2 && Nsub<=8);
+    char *catdir = argv[6];
+    double a = atof(argv[7]); assert(a>0. && a<1.1);
+    int catid = atoi(argv[8]); assert(catid>=1 && catid<=1000);
+    char *outdir = argv[9];
 
     const int maxlen = 1024;
     char catalog[maxlen];
@@ -44,13 +45,14 @@ int main(int argc, char *argv[])
     assert(Np3>0);
     pbc(x, y, z, Np3, L);
 
-    double R = L / Nss;
-    double V = 4*M_PI/3 * R*R*R;
-    fftgal_t *fg = fftgal_init(Ng, 2*R, V, 1, wisdom);
+    double Lsub = L / Nsub;
+    double R = Lsub * M_SQRT3/2;
+    double Vsub = 4*M_PI/3 * R*R*R;
+    fftgal_t *fg = fftgal_init(Ng, L, Vsub, 1, wisdom);
 
     fprintf(stderr, "\n################## has rsd ##################\n\n");
     double *xd=NULL, *yd=NULL, *zd=NULL;
-    double *xsb=NULL, *ysb=NULL, *zsb=NULL;
+    double *xbb=NULL, *ybb=NULL, *zbb=NULL;
     for(int ilos=0; ilos<2; ++ilos)
     for(int jlos=0; jlos<2; ++jlos)
     for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){ /* skip {0,0,0}, {1,1,1} */
@@ -63,39 +65,40 @@ int main(int argc, char *argv[])
         rsd(x, y, z, vx, vy, vz, Np3, &xd, &yd, &zd, los, aH);
         pbc(xd, yd, zd, Np3, L);
 
-        for(int iss=0; iss<Nss; ++iss)
-        for(int jss=0; jss<Nss; ++jss)
-        for(int kss=0; kss<Nss; ++kss){
-            fprintf(stderr, "---------------- sub-vol div ----------------\n");
-            if(xsb!=NULL) free(xsb);
-            if(ysb!=NULL) free(ysb);
-            if(zsb!=NULL) free(zsb);
-            double XYZRL[5] = {iss*R, jss*R, kss*R, R, L};
-            int Np3sb = subsphere(xd, yd, zd, Np3, XYZRL, &xsb, &ysb, &zsb, Np3);
+        for(int isub=0; isub<Nsub; ++isub)
+        for(int jsub=0; jsub<Nsub; ++jsub)
+        for(int ksub=0; ksub<Nsub; ++ksub){
+            fprintf(stderr, "------------------ sub div ------------------\n");
+            if(xbb!=NULL) free(xbb);
+            if(ybb!=NULL) free(ybb);
+            if(zbb!=NULL) free(zbb);
+            double XYZRL[5] = {isub*Lsub, jsub*Lsub, ksub*Lsub, R, L};
+            double bbox[6] = {0., L, 0., L, 0., L};
+            int Np3bb = subsphere(xd, yd, zd, Np3, XYZRL, bbox, &xbb, &ybb, &zbb, Np3);
 
-            fftgal_x2fk(fg, xsb, ysb, zsb, Np3sb);
+            fftgal_x2fk(fg, xbb, ybb, zbb, Np3bb);
 
             char outfile[maxlen];
             ret = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd1_los%d%d%d_ss%d%d%d.txt",
-                    outdir, a, catid, ilos, jlos, klos, iss, jss, kss);
+                    outdir, a, catid, ilos, jlos, klos, isub, jsub, ksub);
             assert(ret>=0 && ret<maxlen);
-            double dK = 0.01;
             Pl(fg, dK, los, outfile);
         }
     }
 
     fprintf(stderr, "\n################ without rsd ################\n\n");
-    for(int iss=0; iss<Nss; ++iss)
-    for(int jss=0; jss<Nss; ++jss)
-    for(int kss=0; kss<Nss; ++kss){
-        fprintf(stderr, "================ sub-vol div ================\n");
-        if(xsb!=NULL) free(xsb);
-        if(ysb!=NULL) free(ysb);
-        if(zsb!=NULL) free(zsb);
-        double XYZRL[5] = {iss*R, jss*R, kss*R, R, L};
-        int Np3sb = subsphere(x, y, z, Np3, XYZRL, &xsb, &ysb, &zsb, Np3);
+    for(int isub=0; isub<Nsub; ++isub)
+    for(int jsub=0; jsub<Nsub; ++jsub)
+    for(int ksub=0; ksub<Nsub; ++ksub){
+        fprintf(stderr, "================== sub div ==================\n");
+        if(xbb!=NULL) free(xbb);
+        if(ybb!=NULL) free(ybb);
+        if(zbb!=NULL) free(zbb);
+        double XYZRL[5] = {isub*Lsub, jsub*Lsub, ksub*Lsub, R, L};
+        double bbox[6] = {0., L, 0., L, 0., L};
+        int Np3bb = subsphere(x, y, z, Np3, XYZRL, bbox, &xbb, &ybb, &zbb, Np3);
 
-        fftgal_x2fk(fg, xsb, ysb, zsb, Np3sb);
+        fftgal_x2fk(fg, xbb, ybb, zbb, Np3bb);
 
         for(int ilos=0; ilos<2; ++ilos)
         for(int jlos=0; jlos<2; ++jlos)
@@ -105,16 +108,15 @@ int main(int argc, char *argv[])
 
             char outfile[maxlen];
             ret = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd0_los%d%d%d_ss%d%d%d.txt",
-                    outdir, a, catid, ilos, jlos, klos, iss, jss, kss);
+                    outdir, a, catid, ilos, jlos, klos, isub, jsub, ksub);
             assert(ret>=0 && ret<maxlen);
-            double dK = 0.01;
             Pl(fg, dK, los, outfile);
         }
     }
 
     free(x); free(y); free(z); free(vx); free(vy); free(vz); free(M); free(issat);
     free(xd); free(yd); free(zd);
-    free(xsb); free(ysb); free(zsb);
+    free(xbb); free(ybb); free(zbb);
     fftgal_free(fg);
     return 0;
 }

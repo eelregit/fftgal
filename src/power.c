@@ -52,7 +52,7 @@ int Pl(fftgal_t *fg, double dK, double los[3], char *output)
     double *loshat = hat(los);
     double KF = 2*M_PI * fg->fold / fg->L;
     double dKinv = KF / dK;
-    int Nb = (int)floor(sqrt(3)*(Ng/2) * dKinv) + 1;
+    int Nb = (int)floor(M_SQRT3*(Ng/2) * dKinv) + 1;
     double *K = (double *)malloc(sizeof(double) * Nb); assert(K!=NULL);
     double *P0 = (double *)malloc(sizeof(double) * Nb); assert(P0!=NULL);
     double *P2 = (double *)malloc(sizeof(double) * Nb); assert(P2!=NULL);

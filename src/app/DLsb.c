@@ -17,18 +17,18 @@ const double bias = 1.;
 int main(int argc, char *argv[])
 {
     if(argc!=9){
-        fprintf(stderr, "Usage: %s Ng L wisdom Nsb catdir a catid outdir\n", argv[0]);
+        fprintf(stderr, "Usage: %s Ng L wisdom Nsub catdir a catid outdir\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
     double L = atof(argv[2]); assert(L>0. && L<1e4);
     char *wisdom = argv[3];
-    int Nsb = atoi(argv[4]); assert(Nsb>0 && Nsb<=8);
+    int Nsub = atoi(argv[4]); assert(Nsub>=2 && Nsub<=8);
     char *catdir = argv[5];
     double a = atof(argv[6]); assert(a>0. && a<1.1);
     int catid = atoi(argv[7]); assert(catid>=1 && catid<=1000);
     char *outdir = argv[8];
-    int Ngsb = Ng / Nsb; assert(Ng%Nsb==0);
+    int Ngsub = Ng / Nsub; assert(Ng%Nsub==0);
 
     const int maxlen = 1024;
     char catalog[maxlen];
@@ -45,10 +45,10 @@ int main(int argc, char *argv[])
     double Wamp[Ng], Wpha[3*Ng][2]; /* subbox smoothing */
     Wamp[0] = 1.;
     for(int i=1; i<Ng; ++i)
-        Wamp[i] = sin(M_PI * i / Nsb) / sin(M_PI * i / Ng) / Ngsb;
+        Wamp[i] = sin(M_PI * i / Nsub) / sin(M_PI * i / Ng) / Ngsub;
     for(int i=0; i<3*Ng; ++i){
-        Wpha[i][0] = cos(M_PI * i * (Ngsb-1) / Ng);
-        Wpha[i][1] = sin(M_PI * i * (Ngsb-1) / Ng);
+        Wpha[i][0] = cos(M_PI * i * (Ngsub-1) / Ng);
+        Wpha[i][1] = sin(M_PI * i * (Ngsub-1) / Ng);
     }
     for(int ilos=0; ilos<2; ++ilos)
     for(int jlos=0; jlos<2; ++jlos)
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
         loshat[1] = jlos / losamp;
         loshat[2] = klos / losamp;
 
-        double DeltaL[3*Nsb*Nsb*Nsb];
+        double DeltaL[3*Nsub*Nsub*Nsub];
         for(int L_half=0; L_half<=2; ++L_half){
             if(fk_copy==NULL){
                 double offset[3] = {0.5, 0.5, 0.5};
@@ -94,10 +94,10 @@ int main(int argc, char *argv[])
             }
 
             fftgal_fk2fx(fg);
-            for(int isb=0; isb<Nsb; ++isb)
-            for(int jsb=0; jsb<Nsb; ++jsb)
-            for(int ksb=0; ksb<Nsb; ++ksb)
-                DeltaL[((L_half*Nsb + isb)*Nsb + jsb)*Nsb + ksb] = F(fg, isb*Ngsb, jsb*Ngsb, ksb*Ngsb) / bias;
+            for(int isub=0; isub<Nsub; ++isub)
+            for(int jsub=0; jsub<Nsub; ++jsub)
+            for(int ksub=0; ksub<Nsub; ++ksub)
+                DeltaL[((L_half*Nsub + isub)*Nsub + jsub)*Nsub + ksub] = F(fg, isub*Ngsub, jsub*Ngsub, ksub*Ngsub) / bias;
         }
 
         char outfile[maxlen];
@@ -105,14 +105,14 @@ int main(int argc, char *argv[])
                 outdir, a, catid, ilos, jlos, klos);
         assert(ret>=0 && ret<maxlen);
         FILE *fp = fopen(outfile, "w"); assert(fp!=NULL);
-        fprintf(fp, "# ijk_sb Delta_0 Delta_2 Delta_4\n");
-        for(int isb=0; isb<Nsb; ++isb)
-        for(int jsb=0; jsb<Nsb; ++jsb)
-        for(int ksb=0; ksb<Nsb; ++ksb)
-            fprintf(fp, "%d%d%d % e % e % e\n", isb, jsb, ksb,
-                    DeltaL[((0*Nsb + isb)*Nsb + jsb)*Nsb + ksb],
-                    DeltaL[((1*Nsb + isb)*Nsb + jsb)*Nsb + ksb],
-                    DeltaL[((2*Nsb + isb)*Nsb + jsb)*Nsb + ksb]);
+        fprintf(fp, "# ijk_sub Delta_0 Delta_2 Delta_4\n");
+        for(int isub=0; isub<Nsub; ++isub)
+        for(int jsub=0; jsub<Nsub; ++jsub)
+        for(int ksub=0; ksub<Nsub; ++ksub)
+            fprintf(fp, "%d%d%d % e % e % e\n", isub, jsub, ksub,
+                    DeltaL[((0*Nsub + isub)*Nsub + jsub)*Nsub + ksub],
+                    DeltaL[((1*Nsub + isub)*Nsub + jsub)*Nsub + ksub],
+                    DeltaL[((2*Nsub + isub)*Nsub + jsub)*Nsub + ksub]);
         fclose(fp);
     }
 
