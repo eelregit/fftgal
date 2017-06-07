@@ -50,9 +50,9 @@ double *fftgal_exportf(fftgal_t *self);
 void fftgal_importf(fftgal_t *self, double *f_copy);
 
 
-/* save and read f[] from files */
+/* save and load f[] from files */
 void fftgal_savef(fftgal_t *self, char *filename);
-void fftgal_readf(fftgal_t *self, char *filename);
+void fftgal_loadf(fftgal_t *self, char *filename);
 
 
 /* free fftgal */

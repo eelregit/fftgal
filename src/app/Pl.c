@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     assert(ret>=0 && ret<maxlen);
     double *x, *y, *z, *vx, *vy, *vz, *M;
     int *issat;
-    int Np3 = qpm_cubic_mocks_read(catalog, &x, &y, &z, &vx, &vy, &vz, &M, &issat);
+    int Np3 = qpm_cubic_mocks_load(catalog, &x, &y, &z, &vx, &vy, &vz, &M, &issat);
     assert(Np3>0);
     pbc(x, y, z, Np3, L);
 

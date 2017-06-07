@@ -238,7 +238,7 @@ void fftgal_savef(fftgal_t *self, char *filename)
 }
 
 
-void fftgal_readf(fftgal_t *self, char *filename)
+void fftgal_loadf(fftgal_t *self, char *filename)
 {
     FILE *fp = fopen(filename, "rb"); assert(fp!=NULL);
     size_t ret = fread(self->f, sizeof(double), self->Ng3_pad, fp);

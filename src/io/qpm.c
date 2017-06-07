@@ -5,7 +5,7 @@
 #include "qpm.h"
 
 
-int qpm_cubic_mocks_read(char *catalog, double **x, double **y, double **z,
+int qpm_cubic_mocks_load(char *catalog, double **x, double **y, double **z,
         double **vx, double **vy, double **vz, double **M, int **issat)
 {
     FILE *fp = fopen(catalog, "r"); assert(fp!=NULL);
@@ -29,7 +29,7 @@ int qpm_cubic_mocks_read(char *catalog, double **x, double **y, double **z,
         assert(ret==8);
     }
     fclose(fp);
-    fprintf(stderr, "qpm_cubic_mocks_read() %.3fs to load %d galaxies\n",
+    fprintf(stderr, "qpm_cubic_mocks_load() %.3fs to load %d galaxies\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Np3);
     return Np3;
 }
