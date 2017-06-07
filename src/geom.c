@@ -8,11 +8,11 @@
 #include "geom.h"
 
 
-void pbc(double *x, double *y, double *z, long long int Np3, double L)
+void pbc(double *x, double *y, double *z, long long Np3, double L)
 {
     double Linv = 1 / L;
     clock_t t = clock();
-    for(long long int p=0; p<Np3; ++p){
+    for(long long p=0; p<Np3; ++p){
         x[p] -= L * floor(x[p] * Linv);
         y[p] -= L * floor(y[p] * Linv);
         z[p] -= L * floor(z[p] * Linv);
@@ -28,8 +28,8 @@ double pdist2(double x1, double y1, double z1, double x2, double y2, double z2, 
     return dx*dx + dy*dy + dz*dz;
 }
 
-long long int subbox(double *x, double *y, double *z, long long int Np3, double xyzlim[6], double bbox[6],
-        double **xbb, double **ybb, double **zbb, long long int Np3sub_max)
+long long subbox(double *x, double *y, double *z, long long Np3, double xyzlim[6], double bbox[6],
+        double **xbb, double **ybb, double **zbb, long long Np3sub_max)
 {
     double xmin = xyzlim[0], xmax = xyzlim[1];
     double ymin = xyzlim[2], ymax = xyzlim[3];
@@ -48,7 +48,7 @@ long long int subbox(double *x, double *y, double *z, long long int Np3, double 
     *xbb = (double *)malloc(Np3sub_max * sizeof(double)); assert(*xbb!=NULL);
     *ybb = (double *)malloc(Np3sub_max * sizeof(double)); assert(*ybb!=NULL);
     *zbb = (double *)malloc(Np3sub_max * sizeof(double)); assert(*zbb!=NULL);
-    long long int p, Np3sub;
+    long long p, Np3sub;
     clock_t t = clock();
     for(p=0, Np3sub=0; p<Np3 && Np3sub<Np3sub_max; ++p)
         if(x[p]>=xmin && x[p]<xmax && y[p]>=ymin && y[p]<ymax && z[p]>=zmin && z[p]<zmax){
@@ -59,7 +59,7 @@ long long int subbox(double *x, double *y, double *z, long long int Np3, double 
         }
     assert(p == Np3);
 
-    long long int Np3bb = round(Vbb/Vsub * Np3sub);
+    long long Np3bb = round(Vbb/Vsub * Np3sub);
     *xbb = (double *)realloc(*xbb, Np3bb * sizeof(double)); assert(*xbb!=NULL);
     *ybb = (double *)realloc(*ybb, Np3bb * sizeof(double)); assert(*ybb!=NULL);
     *zbb = (double *)realloc(*zbb, Np3bb * sizeof(double)); assert(*zbb!=NULL);
@@ -85,8 +85,8 @@ long long int subbox(double *x, double *y, double *z, long long int Np3, double 
     return Np3bb;
 }
 
-long long int subsphere(double *x, double *y, double *z, long long int Np3, double XYZRL[5], double bbox[6],
-        double **xbb, double **ybb, double **zbb, long long int Np3sub_max)
+long long subsphere(double *x, double *y, double *z, long long Np3, double XYZRL[5], double bbox[6],
+        double **xbb, double **ybb, double **zbb, long long Np3sub_max)
 {
     double X = XYZRL[0], Y = XYZRL[1], Z = XYZRL[2], R = XYZRL[3], L=XYZRL[4];
     double R2 = R*R, Vsub = 4*M_PI/3 * R2*R;
@@ -103,7 +103,7 @@ long long int subsphere(double *x, double *y, double *z, long long int Np3, doub
     *xbb = (double *)malloc(Np3sub_max * sizeof(double)); assert(*xbb!=NULL);
     *ybb = (double *)malloc(Np3sub_max * sizeof(double)); assert(*ybb!=NULL);
     *zbb = (double *)malloc(Np3sub_max * sizeof(double)); assert(*zbb!=NULL);
-    long long int p, Np3sub;
+    long long p, Np3sub;
     clock_t t = clock();
     for(p=0, Np3sub=0; p<Np3 && Np3sub<Np3sub_max; ++p)
         if(pdist2(x[p], y[p], z[p], X, Y, Z, L) < R2){
@@ -114,7 +114,7 @@ long long int subsphere(double *x, double *y, double *z, long long int Np3, doub
         }
     assert(p == Np3);
 
-    long long int Np3bb = round(Vbb/Vsub * Np3sub);
+    long long Np3bb = round(Vbb/Vsub * Np3sub);
     *xbb = (double *)realloc(*xbb, Np3bb * sizeof(double)); assert(*xbb!=NULL);
     *ybb = (double *)realloc(*ybb, Np3bb * sizeof(double)); assert(*ybb!=NULL);
     *zbb = (double *)realloc(*zbb, Np3bb * sizeof(double)); assert(*zbb!=NULL);

@@ -58,7 +58,7 @@ fftgal_t *fftgal_init(int Ng, double L, double V, int fold, char wisdom[])
 
 
 void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
-        long long int Np3, double offset[3])
+        long long Np3, double offset[3])
 {
     self->Np3 = Np3;
     int Ng = self->Ng;
@@ -71,7 +71,7 @@ void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
     for(long int g=0; g<self->Ng3_pad; ++g) /* must zero after fftw_plan */
         self->f[g] = 0.;
     double Hinv = Ng * self->fold / self->L;
-    for(long long int p=0; p<Np3; ++p){
+    for(long long p=0; p<Np3; ++p){
         double xp = x[p] * Hinv - offset[0];
         double yp = y[p] * Hinv - offset[1];
         double zp = z[p] * Hinv - offset[2];
@@ -179,7 +179,7 @@ void fftgal_deconv(fftgal_t *self)
 }
 
 
-void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int Np3)
+void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long Np3)
 {
     fprintf(stderr, "fftgal_x2fk() interlacing with half-grid offset\n");
     double offset_dual[3] = {0.5, 0.5, 0.5};

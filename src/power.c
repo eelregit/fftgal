@@ -26,7 +26,7 @@ double *hat(double los[3])
 
 
 void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
-        long long int Np3, double **xd, double **yd, double **zd,
+        long long Np3, double **xd, double **yd, double **zd,
         double los[3], double aH)
 {
     *xd = (double *)malloc(Np3 * sizeof(double)); assert(*xd!=NULL);
@@ -35,7 +35,7 @@ void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
     double *loshat = hat(los);
     double aHinv = 1 / aH;
     clock_t t = clock();
-    for(long long int p=0; p<Np3; ++p){
+    for(long long p=0; p<Np3; ++p){
         double vdotlos = loshat[0]*vx[p] + loshat[1]*vy[p] + loshat[2]*vz[p];
         (*xd)[p] = x[p] + aHinv * vdotlos * loshat[0];
         (*yd)[p] = y[p] + aHinv * vdotlos * loshat[1];

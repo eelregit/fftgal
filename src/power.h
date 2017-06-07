@@ -9,7 +9,7 @@
  * xd, yd, zd are allocated, remember to free them
  */
 void rsd(double *x, double *y, double *z, double *vx, double *vy, double *vz,
-        long long int Np3, double **xd, double **yd, double **zd,
+        long long Np3, double **xd, double **yd, double **zd,
         double los[3], double aH);
 
 /* multipoles, return number of bins

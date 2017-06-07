@@ -16,7 +16,7 @@ typedef struct {
     int Ng;
     int Ng_pad; /* 2 * (Ng/2 + 1) */
     long int Ng3_pad; /* sizeof(f) / sizeof(double) */
-    long long int Np3;
+    long long Np3;
     double L;
     double V; /* L^3 or volume for non-cubic geometry */
     int fold; /* folded length is L/fold */
@@ -32,13 +32,13 @@ fftgal_t *fftgal_init(int Ng, double L, double V, int fold, char wisdom[]);
 
 /* paint , forward FFT, and deconvolve paintbrush */
 void fftgal_x2fx(fftgal_t *self, double *x, double *y, double *z,
-        long long int Np3, double offset[3]);
+        long long Np3, double offset[3]);
 void fftgal_fx2fk(fftgal_t *self);
 void fftgal_deconv(fftgal_t *self);
 
 
 /* simple interface to do interlaced painting+FFT, and average before deconvolve */
-void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long int Np3);
+void fftgal_x2fk(fftgal_t *self, double *x, double *y, double *z, long long Np3);
 
 
 /* backward FFT */
