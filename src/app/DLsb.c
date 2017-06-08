@@ -42,13 +42,13 @@ int main(int argc, char *argv[])
     fftgal_t *fg = fftgal_init(Ng, L, -1, 1, wisdom);
 
     double *fk_copy = NULL;
-    double Wamp[Ng], Wpha[3*Ng][2];  /* subbox smoothing */
+    double Wamp[Ng], Wph[3*Ng][2];  /* subbox smoothing */
     Wamp[0] = 1;
     for(int i=1; i<Ng; ++i)
         Wamp[i] = sin(M_PI * i / Nsub) / sin(M_PI * i / Ng) / Ngsub;
     for(int i=0; i<3*Ng; ++i){
-        Wpha[i][0] = cos(M_PI * i * (Ngsub-1) / Ng);
-        Wpha[i][1] = sin(M_PI * i * (Ngsub-1) / Ng);
+        Wph[i][0] = cos(M_PI * i * (Ngsub-1) / Ng);
+        Wph[i][1] = sin(M_PI * i * (Ngsub-1) / Ng);
     }
     for(int ilos=0; ilos<2; ++ilos)
     for(int jlos=0; jlos<2; ++jlos)
@@ -85,12 +85,12 @@ int main(int argc, char *argv[])
                 double mu2 = gsl_pow_2((Kval[i]*loshat[0] + Kval[j]*loshat[1] + Kval[k]*loshat[2]) / Kamp);
                 double Legendre[3] = {1, 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
                 double Wamp3 = Wamp[i] * Wamp[j] * Wamp[k];
-                double ReW = Wpha[i+j+k][0] * Wamp3;
-                double ImW = Wpha[i+j+k][1] * Wamp3;
-                double Red = F_Re(fg,i,j,k);
-                double Imd = F_Im(fg,i,j,k);
-                F_Re(fg,i,j,k) = Legendre[L_half] * (Red*ReW - Imd*ImW);
-                F_Im(fg,i,j,k) = Legendre[L_half] * (Red*ImW + Imd*ReW);
+                double W_re = Wph[i+j+k][0] * Wamp3;
+                double W_im = Wph[i+j+k][1] * Wamp3;
+                double f_re = F_Re(fg,i,j,k);
+                double f_im = F_Im(fg,i,j,k);
+                F_Re(fg,i,j,k) = Legendre[L_half] * (f_re*W_re - f_im*W_im);
+                F_Im(fg,i,j,k) = Legendre[L_half] * (f_re*W_im + f_im*W_re);
             }
 
             fftgal_fk2fx(fg);
