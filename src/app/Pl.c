@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     double *xd=NULL, *yd=NULL, *zd=NULL;
     for(int ilos=0; ilos<2; ++ilos)
     for(int jlos=0; jlos<2; ++jlos)
-    for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){ /* skip {0,0,0}, {1,1,1} */
+    for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){  /* skip {0,0,0}, {1,1,1} */
         fprintf(stderr, "================== los div ==================\n");
         if(xd!=NULL) free(xd);
         if(yd!=NULL) free(yd);
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 
     for(int ilos=0; ilos<2; ++ilos)
     for(int jlos=0; jlos<2; ++jlos)
-    for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){ /* skip {0,0,0}, {1,1,1} */
+    for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){  /* skip {0,0,0}, {1,1,1} */
         fprintf(stderr, "------------------ los div ------------------\n");
         double los[3] = {ilos, jlos, klos};
 

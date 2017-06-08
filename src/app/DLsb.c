@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     fftgal_t *fg = fftgal_init(Ng, L, -1, 1, wisdom);
 
     double *fk_copy = NULL;
-    double Wamp[Ng], Wpha[3*Ng][2]; /* subbox smoothing */
+    double Wamp[Ng], Wpha[3*Ng][2];  /* subbox smoothing */
     Wamp[0] = 1.;
     for(int i=1; i<Ng; ++i)
         Wamp[i] = sin(M_PI * i / Nsub) / sin(M_PI * i / Ng) / Ngsub;
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     }
     for(int ilos=0; ilos<2; ++ilos)
     for(int jlos=0; jlos<2; ++jlos)
-    for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){ /* skip {0,0,0}, {1,1,1} */
+    for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){  /* skip {0,0,0}, {1,1,1} */
         fprintf(stderr, "================== los div ==================\n");
         double losamp = sqrt(ilos*ilos + jlos*jlos + klos*klos);
         double loshat[3];
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
             fg->f[0] = 0.;
             for(int i=0; i<Ng; ++i)
             for(int j=0; j<Ng; ++j)
-            for(int k=(i==0 && j==0); k<=Ng/2; ++k){ /* skip {0,0,0} */
+            for(int k=(i==0 && j==0); k<=Ng/2; ++k){  /* skip {0,0,0} */
                 double Kamp = sqrt(gsl_pow_2(Kval[i]) + gsl_pow_2(Kval[j]) + gsl_pow_2(Kval[k]));
                 double mu2 = gsl_pow_2((Kval[i]*loshat[0] + Kval[j]*loshat[1] + Kval[k]*loshat[2]) / Kamp);
                 double Legendre[3] = {1., 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};

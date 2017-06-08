@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include <assert.h>
 #include <time.h>
-#include <math.h>
 #include <gsl/gsl_math.h>
 #include "power.h"
 
