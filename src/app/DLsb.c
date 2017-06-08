@@ -11,7 +11,7 @@
 
 /* use bias!=1 to rescale to matter overdensity if it's known,
  * otherwise output is in tracer overdensity */
-const double bias = 1.;
+const double bias = 1;
 
 
 int main(int argc, char *argv[])
@@ -21,11 +21,11 @@ int main(int argc, char *argv[])
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
-    double L = atof(argv[2]); assert(L>0. && L<1e4);
+    double L = atof(argv[2]); assert(L>0 && L<1e4);
     char *wisdom = argv[3];
     int Nsub = atoi(argv[4]); assert(Nsub>=2 && Nsub<=8);
     char *catdir = argv[5];
-    double a = atof(argv[6]); assert(a>0. && a<1.1);
+    double a = atof(argv[6]); assert(a>0 && a<1.1);
     int catid = atoi(argv[7]); assert(catid>=1 && catid<=1000);
     char *outdir = argv[8];
     int Ngsub = Ng / Nsub; assert(Ng%Nsub==0);
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
     double *fk_copy = NULL;
     double Wamp[Ng], Wpha[3*Ng][2];  /* subbox smoothing */
-    Wamp[0] = 1.;
+    Wamp[0] = 1;
     for(int i=1; i<Ng; ++i)
         Wamp[i] = sin(M_PI * i / Nsub) / sin(M_PI * i / Ng) / Ngsub;
     for(int i=0; i<3*Ng; ++i){
@@ -72,18 +72,18 @@ int main(int argc, char *argv[])
                 fftgal_importf(fg, fk_copy);
 
             double Kval[Ng];
-            Kval[0] = 0.;
+            Kval[0] = 0;
             for(int i=1; i<=Ng/2; ++i){
                 Kval[i] = i;
                 Kval[Ng-i] = - i;
             }
-            fg->f[0] = 0.;
+            fg->f[0] = 0;
             for(int i=0; i<Ng; ++i)
             for(int j=0; j<Ng; ++j)
             for(int k=(i==0 && j==0); k<=Ng/2; ++k){  /* skip {0,0,0} */
                 double Kamp = sqrt(gsl_pow_2(Kval[i]) + gsl_pow_2(Kval[j]) + gsl_pow_2(Kval[k]));
                 double mu2 = gsl_pow_2((Kval[i]*loshat[0] + Kval[j]*loshat[1] + Kval[k]*loshat[2]) / Kamp);
-                double Legendre[3] = {1., 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
+                double Legendre[3] = {1, 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
                 double Wamp3 = Wamp[i] * Wamp[j] * Wamp[k];
                 double ReW = Wpha[i+j+k][0] * Wamp3;
                 double ImW = Wpha[i+j+k][1] * Wamp3;

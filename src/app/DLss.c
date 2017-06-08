@@ -11,7 +11,7 @@
 
 /* use bias!=1 to rescale to matter overdensity if it's known,
  * otherwise output is in tracer overdensity */
-const double bias = 1.;
+const double bias = 1;
 
 
 static double tophat(double KR)  /* KR!=0 */
@@ -27,11 +27,11 @@ int main(int argc, char *argv[])
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
-    double L = atof(argv[2]); assert(L>0. && L<1e4);
+    double L = atof(argv[2]); assert(L>0 && L<1e4);
     char *wisdom = argv[3];
     int Nsub = atoi(argv[4]); assert(Nsub>=2 && Nsub<=8);
     char *catdir = argv[5];
-    double a = atof(argv[6]); assert(a>0. && a<1.1);
+    double a = atof(argv[6]); assert(a>0 && a<1.1);
     int catid = atoi(argv[7]); assert(catid>=1 && catid<=1000);
     char *outdir = argv[8];
     int Ngsub = Ng / Nsub; assert(Ng%Nsub==0);
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
         double DeltaL[3*Nsub*Nsub*Nsub];
         for(int L_half=0; L_half<=2; ++L_half){
             if(fk_copy==NULL){
-                double offset[3] = {0., 0., 0.};
+                double offset[3] = {0, 0, 0};
                 fftgal_x2fx(fg, x, y, z, Np3, offset);
                 fftgal_fx2fk(fg);
                 fk_copy = fftgal_exportf(fg);
@@ -70,18 +70,18 @@ int main(int argc, char *argv[])
                 fftgal_importf(fg, fk_copy);
 
             double Kval[Ng];
-            Kval[0] = 0.;
+            Kval[0] = 0;
             for(int i=1; i<=Ng/2; ++i){
                 Kval[i] = i;
                 Kval[Ng-i] = - i;
             }
-            fg->f[0] = 0.;
+            fg->f[0] = 0;
             for(int i=0; i<Ng; ++i)
             for(int j=0; j<Ng; ++j)
             for(int k=(i==0 && j==0); k<=Ng/2; ++k){  /* skip {0,0,0} */
                 double Kamp = sqrt(gsl_pow_2(Kval[i]) + gsl_pow_2(Kval[j]) + gsl_pow_2(Kval[k]));
                 double mu2 = gsl_pow_2((Kval[i]*loshat[0] + Kval[j]*loshat[1] + Kval[k]*loshat[2]) / Kamp);
-                double Legendre[3] = {1., 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
+                double Legendre[3] = {1, 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
                 double W = tophat(Kamp * M_PI*M_SQRT3 / Nsub);
                 F_Re(fg,i,j,k) *= Legendre[L_half] * W;
                 F_Im(fg,i,j,k) *= Legendre[L_half] * W;

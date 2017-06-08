@@ -25,12 +25,12 @@ int main(int argc, char *argv[])
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
-    double L = atof(argv[2]); assert(L>0. && L<1e4);
-    double dK = atof(argv[3]); assert(dK>0. && dK <.1);
+    double L = atof(argv[2]); assert(L>0 && L<1e4);
+    double dK = atof(argv[3]); assert(dK>0 && dK <.1);
     char *wisdom = argv[4];
     int Nsub = atoi(argv[5]); assert(Nsub>=2 && Nsub<=8);
     char *catdir = argv[6];
-    double a = atof(argv[7]); assert(a>0. && a<1.1);
+    double a = atof(argv[7]); assert(a>0 && a<1.1);
     int catid = atoi(argv[8]); assert(catid>=1 && catid<=1000);
     char *outdir = argv[9];
 
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
             double xyzlim[6] = {isub*Lsub, (isub+1)*Lsub,
                                 jsub*Lsub, (jsub+1)*Lsub,
                                 ksub*Lsub, (ksub+1)*Lsub};
-            double bbox[6] = {0., L, 0., L, 0., L};
+            double bbox[6] = {0, L, 0, L, 0, L};
             int Np3bb = subbox(xd, yd, zd, Np3, xyzlim, bbox, &xbb, &ybb, &zbb, Np3);
 
             fftgal_x2fk(fg, xbb, ybb, zbb, Np3bb);
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
         double xyzlim[6] = {isub*Lsub, (isub+1)*Lsub,
                             jsub*Lsub, (jsub+1)*Lsub,
                             ksub*Lsub, (ksub+1)*Lsub};
-        double bbox[6] = {0., L, 0., L, 0., L};
+        double bbox[6] = {0, L, 0, L, 0, L};
         int Np3bb = subbox(x, y, z, Np3, xyzlim, bbox, &xbb, &ybb, &zbb, Np3);
 
         fftgal_x2fk(fg, xbb, ybb, zbb, Np3bb);
