@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
 
     const int maxlen = 1024;
     char catalog[maxlen];
-    int ret = snprintf(catalog, maxlen, "%s/a%.4f_%04d.mock", catdir, a, catid);
-    assert(ret>=0 && ret<maxlen);
+    int retval = snprintf(catalog, maxlen, "%s/a%.4f_%04d.mock", catdir, a, catid);
+    assert(retval>=0 && retval<maxlen);
     double *x, *y, *z, *vx, *vy, *vz, *M;
     int *issat;
     int Np3 = qpm_cubic_mocks_load(catalog, &x, &y, &z, &vx, &vy, &vz, &M, &issat);
@@ -101,9 +101,9 @@ int main(int argc, char *argv[])
         }
 
         char outfile[maxlen];
-        ret = snprintf(outfile, maxlen, "%s/a%.4f_%04d/DLsb_los%d%d%d.txt",
+        retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/DLsb_los%d%d%d.txt",
                 outdir, a, catid, ilos, jlos, klos);
-        assert(ret>=0 && ret<maxlen);
+        assert(retval>=0 && retval<maxlen);
         FILE *fp = fopen(outfile, "w"); assert(fp!=NULL);
         fprintf(fp, "# ijk_sub Delta_0 Delta_2 Delta_4\n");
         for(int isub=0; isub<Nsub; ++isub)
