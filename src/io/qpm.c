@@ -2,34 +2,35 @@
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>
-#include "qpm.h"
+#include "../gal.h"
+#include "io.h"
 
 
-int qpm_cubic_mocks_load(char *catalog, double **x, double **y, double **z,
-        double **vx, double **vy, double **vz, double **M, int **issat)
+gal_t *gal_loadqpm_cubic(char *file, double L)
 {
-    FILE *fp = fopen(catalog, "r"); assert(fp!=NULL);
-    int Np3 = 0, ch;
-    while((ch=fgetc(fp)) != EOF)
-        if(ch=='\n')
-            ++ Np3;
+    FILE *fp = fopen(file, "r"); assert(fp!=NULL);
+    int Np = 0, c;
+    while((c = fgetc(fp)) != EOF)
+        if(c=='\n')
+            ++ Np;
     rewind(fp);
-    *x = (double *)malloc(Np3 * sizeof(double)); assert(*x!=NULL);
-    *y = (double *)malloc(Np3 * sizeof(double)); assert(*y!=NULL);
-    *z = (double *)malloc(Np3 * sizeof(double)); assert(*z!=NULL);
-    *vx = (double *)malloc(Np3 * sizeof(double)); assert(*vx!=NULL);
-    *vy = (double *)malloc(Np3 * sizeof(double)); assert(*vy!=NULL);
-    *vz = (double *)malloc(Np3 * sizeof(double)); assert(*vz!=NULL);
-    *M = (double *)malloc(Np3 * sizeof(double)); assert(*M!=NULL);
-    *issat = (int *)malloc(Np3 * sizeof(int)); assert(*issat!=NULL);
+
+    gal_t *catalog = gal_init(Np, L*L*L);
+    /* HACK */
+    catalog->vx = (double *)malloc(Np * sizeof(double)); assert(catalog->vx!=NULL);
+    catalog->vy = (double *)malloc(Np * sizeof(double)); assert(catalog->vy!=NULL);
+    catalog->vz = (double *)malloc(Np * sizeof(double)); assert(catalog->vz!=NULL);
+
     clock_t t = clock();
-    for(int i=0; i<Np3; ++i){
-        int ret = fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf %d %*d\n",
-                *x+i, *y+i, *z+i, *vx+i, *vy+i, *vz+i, *M+i, *issat+i);
-        assert(ret==8);
+    for(int i=0; i<Np; ++i){
+        int retval = fscanf(fp, "%lf %lf %lf %lf %lf %lf %*f %*d %*d\n",
+                catalog->x+i, catalog->y+i, catalog->z+i,
+                catalog->vx+i, catalog->vy+i, catalog->vz+i);
+        assert(retval==6);
     }
     fclose(fp);
-    fprintf(stderr, "qpm_cubic_mocks_load() %.3fs to load %d galaxies\n",
-            (double)(clock()-t)/CLOCKS_PER_SEC, Np3);
-    return Np3;
+    fprintf(stderr, "gal_loadqpm_cubic() %.3fs on loading %d galaxies\n",
+            (double)(clock()-t)/CLOCKS_PER_SEC, Np);
+
+    return catalog;
 }
