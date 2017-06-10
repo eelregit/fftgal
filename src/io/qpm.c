@@ -6,12 +6,11 @@
 #include "io.h"
 
 
-gal_t *gal_loadqpm_cubic(char *file, double L)
-{
+gal_t *gal_loadqpm_cubic(char *file, double L) {
     FILE *fp = fopen(file, "r"); assert(fp!=NULL);
     int Np = 0, c;
-    while((c = fgetc(fp)) != EOF)
-        if(c=='\n')
+    while ((c = fgetc(fp)) != EOF)
+        if (c == '\n')
             ++ Np;
     rewind(fp);
 
@@ -23,11 +22,11 @@ gal_t *gal_loadqpm_cubic(char *file, double L)
     part->vz = (double *)malloc(Np * sizeof(double)); assert(part->vz!=NULL);
 
     clock_t t = clock();
-    for(int i=0; i<Np; ++i){
+    for (int i = 0; i < Np; ++i) {
         int retval = fscanf(fp, "%lf %lf %lf %lf %lf %lf %*f %*d %*d\n",
                 part->x+i, part->y+i, part->z+i,
                 part->vx+i, part->vy+i, part->vz+i);
-        assert(retval==6);
+        assert(retval == 6);
     }
     fclose(fp);
     fprintf(stderr, "gal_loadqpm_cubic() %.3fs on loading %d galaxies\n",

@@ -9,8 +9,7 @@
 #include "power.h"
 
 
-int Pl(fft_t *grid, gal_t *part, double dK, double los[3], char *file)
-{
+int Pl(fft_t *grid, gal_t *part, double dK, double los[3], char *file) {
     int Ng = grid->Ng;
     hat(los);
     double KF = 2*M_PI / grid->L;
@@ -18,20 +17,20 @@ int Pl(fft_t *grid, gal_t *part, double dK, double los[3], char *file)
     int Nb = (int)floor(M_SQRT3*(Ng/2) * dKinv) + 1;
     double K[Nb], P0[Nb], P2[Nb], P4[Nb], P6[Nb];
     long N[Nb];
-    for(int b=0; b<Nb; ++b){
+    for (int b = 0; b < Nb; ++b) {
         K[b] = P0[b] = P2[b] = P4[b] = P6[b] = 0;
         N[b] = 0;
     }
     clock_t t = clock();
     double Kval[Ng];
     Kval[0] = 0;
-    for(int i=1; i<=Ng/2; ++i){
+    for (int i = 1; i <= Ng/2; ++i) {
         Kval[i] = i;
         Kval[Ng-i] = - i;
     }
-    for(int i=0; i<Ng; ++i)
-    for(int j=0; j<Ng; ++j)
-    for(int k=(i==0 && j==0); k<=Ng/2; ++k){  /* skip {0,0,0} */
+    for (int i = 0; i < Ng; ++i)  /* skip {0,0,0} */
+    for (int j = 0; j < Ng; ++j)
+    for (int k = (i==0 && j==0); k <= Ng/2; ++k) {
         double Kamp = sqrt(gsl_pow_2(Kval[i]) + gsl_pow_2(Kval[j]) + gsl_pow_2(Kval[k]));
         int b = (int)floor(Kamp * dKinv);
         int count = 1 + (2*k%Ng > 0);
@@ -50,11 +49,11 @@ int Pl(fft_t *grid, gal_t *part, double dK, double los[3], char *file)
 
     long Ntot = 0;
     double alpha;
-    if(part->rand == NULL)
+    if (part->rand == NULL)
         alpha = 0;
     else
         alpha = (double)part->Np / part->rand->Np;
-    for(int b=0; b<Nb; ++b){
+    for (int b = 0; b < Nb; ++b) {
         K[b] *= KF / N[b];
         P0[b] *= 1 / part->V / N[b];
         P0[b] -= (1 + alpha) * part->V / part->Np;
@@ -75,7 +74,7 @@ int Pl(fft_t *grid, gal_t *part, double dK, double los[3], char *file)
     fprintf(fp, "# alpha %g\n", alpha);
     fprintf(fp, "# los[3] %g %g %g\n", los[0], los[1], los[2]);
     fprintf(fp, "# K P0 P2 P4 P6 N\n");
-    for(int b=0; b<Nb; ++b)
+    for (int b = 0; b < Nb; ++b)
         fprintf(fp, "%e %e % e % e % e %ld\n", K[b], P0[b], P2[b], P4[b], P6[b], N[b]);
     fclose(fp);
     fprintf(stderr, "Pl() saved to %s\n", file);

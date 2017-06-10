@@ -15,15 +15,13 @@
 const double bias = 1;
 
 
-static double tophat(double KR)  /* KR!=0 */
-{
-    return 3 * (sin(KR) - KR*cos(KR)) / gsl_pow_3(KR);
+static double tophat(double KR) {
+    return 3 * (sin(KR) - KR*cos(KR)) / gsl_pow_3(KR);  /* KR != 0 */
 }
 
 
-int main(int argc, char *argv[])
-{
-    if(argc!=9){
+int main(int argc, char *argv[]) {
+    if (argc != 9) {
         fprintf(stderr, "Usage: %s Ng L Nsub wisdom indir a id outdir\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
@@ -35,7 +33,7 @@ int main(int argc, char *argv[])
     double a = atof(argv[6]); assert(a>0 && a<1.1);
     int id = atoi(argv[7]); assert(id>=1 && id<=1000);
     char *outdir = argv[8];
-    int Ngsub = Ng / Nsub; assert(Ng%Nsub==0);
+    int Ngsub = Ng / Nsub; assert(Ng%Nsub == 0);
 
     fft_t *grid = fft_init(Ng, L, wisdom);
 
@@ -46,34 +44,34 @@ int main(int argc, char *argv[])
     gal_t *part = gal_loadqpm_cubic(infile, L);
 
     double *fk_copy = NULL;
-    for(int ilos=0; ilos<2; ++ilos)
-    for(int jlos=0; jlos<2; ++jlos)
-    for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){  /* skip {0,0,0}, {1,1,1} */
+    for (int ilos = 0; ilos < 2; ++ilos)  /* skip {0,0,0}, {1,1,1} */
+    for (int jlos = 0; jlos < 2; ++jlos)
+    for (int klos = (ilos==0 && jlos==0); klos < 2 - (ilos==1 && jlos==1); ++klos) {
         fprintf(stderr, "================== los div ==================\n");
         double los[3] = {ilos, jlos, klos};
         hat(los);
 
         double DeltaL[3*Nsub*Nsub*Nsub];
-        for(int Lhalf=0; Lhalf<=2; ++Lhalf){
-            if(fk_copy==NULL){
+        for (int Lhalf = 0; Lhalf <= 2; ++Lhalf) {
+            if (fk_copy == NULL) {
                 double offset[3] = {0, 0, 0};
                 fft_p2g(grid, part, offset);
                 fft_x2k(grid, 0);
                 fk_copy = fft_exportf(grid);
-            }
-            else
+            } else {
                 fft_importf(grid, fk_copy);
+            }
 
             double Kval[Ng];
             Kval[0] = 0;
-            for(int i=1; i<=Ng/2; ++i){
+            for (int i = 1; i <= Ng/2; ++i) {
                 Kval[i] = i;
                 Kval[Ng-i] = - i;
             }
             grid->f[0] = 0;
-            for(int i=0; i<Ng; ++i)
-            for(int j=0; j<Ng; ++j)
-            for(int k=(i==0 && j==0); k<=Ng/2; ++k){  /* skip {0,0,0} */
+            for (int i = 0; i < Ng; ++i)  /* skip {0,0,0} */
+            for (int j = 0; j < Ng; ++j)
+            for (int k = (i==0 && j==0); k <= Ng/2; ++k) {
                 double Kamp = sqrt(gsl_pow_2(Kval[i]) + gsl_pow_2(Kval[j]) + gsl_pow_2(Kval[k]));
                 double mu2 = gsl_pow_2((Kval[i]*los[0] + Kval[j]*los[1] + Kval[k]*los[2]) / Kamp);
                 double Legendre[3] = {1, 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
@@ -83,9 +81,9 @@ int main(int argc, char *argv[])
             }
 
             fft_k2x(grid, 0);
-            for(int isub=0; isub<Nsub; ++isub)
-            for(int jsub=0; jsub<Nsub; ++jsub)
-            for(int ksub=0; ksub<Nsub; ++ksub)
+            for (int isub = 0; isub < Nsub; ++isub)
+            for (int jsub = 0; jsub < Nsub; ++jsub)
+            for (int ksub = 0; ksub < Nsub; ++ksub)
                 DeltaL[((Lhalf*Nsub + isub)*Nsub + jsub)*Nsub + ksub]
                     = F(grid, isub*Ngsub, jsub*Ngsub, ksub*Ngsub) / bias;
         }
@@ -96,9 +94,9 @@ int main(int argc, char *argv[])
         assert(retval>=0 && retval<maxlen);
         FILE *fp = fopen(outfile, "w"); assert(fp!=NULL);
         fprintf(fp, "# ijk_sub Delta_0 Delta_2 Delta_4\n");
-        for(int isub=0; isub<Nsub; ++isub)
-        for(int jsub=0; jsub<Nsub; ++jsub)
-        for(int ksub=0; ksub<Nsub; ++ksub)
+        for (int isub = 0; isub < Nsub; ++isub)
+        for (int jsub = 0; jsub < Nsub; ++jsub)
+        for (int ksub = 0; ksub < Nsub; ++ksub)
             fprintf(fp, "%d%d%d % e % e % e\n", isub, jsub, ksub,
                     DeltaL[((0*Nsub + isub)*Nsub + jsub)*Nsub + ksub],
                     DeltaL[((1*Nsub + isub)*Nsub + jsub)*Nsub + ksub],

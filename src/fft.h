@@ -13,7 +13,7 @@
 #define F_Im(self,i,j,k) F(self,i,j,2*k+1)
 
 
-typedef struct fft{
+typedef struct fft {
     fftw_plan x2k, k2x;
     double *f;  /* in-place: fk = (fftw_complex *)fx */
     double offset[3];  /* grid (Dirac comb Ш) wrt boundary [0,L)^3 in grid unit */
@@ -38,6 +38,7 @@ void fft_offset_phase(fft_t *self, int onoff);
 
 
 void fft_deconv(fft_t *self);
+
 
 /* simple interlacing interface = (paint + FFT) x 2 + average + deconvolve */
 void fft_p2k(fft_t *self, gal_t *part);

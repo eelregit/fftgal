@@ -10,17 +10,15 @@
 #include "../io/io.h"
 
 
-double H(double a)
-{
+double H(double a) {
     double Om = 0.29;
     double OL = 1 - Om;
     return 100 * sqrt(Om/(a*a*a) + OL);
 }
 
 
-int main(int argc, char *argv[])
-{
-    if(argc!=10){
+int main(int argc, char *argv[]) {
+    if (argc != 10) {
         fprintf(stderr, "Usage: %s Ng L fold wisdom dK indir a id outdir\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
@@ -45,9 +43,9 @@ int main(int argc, char *argv[])
 
     fprintf(stderr, "\n################## has rsd ##################\n\n");
     gal_t *partrsd = NULL;
-    for(int ilos=0; ilos<2; ++ilos)
-    for(int jlos=0; jlos<2; ++jlos)
-    for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){  /* skip {0,0,0}, {1,1,1} */
+    for (int ilos = 0; ilos < 2; ++ilos)  /* skip {0,0,0}, {1,1,1} */
+    for (int jlos = 0; jlos < 2; ++jlos)
+    for (int klos = (ilos==0 && jlos==0); klos < 2 - (ilos==1 && jlos==1); ++klos) {
         fprintf(stderr, "================== los div ==================\n");
         double los[3] = {ilos, jlos, klos};
         double aH = a * H(a);
@@ -67,9 +65,9 @@ int main(int argc, char *argv[])
 
     fft_p2k(grid, part);
 
-    for(int ilos=0; ilos<2; ++ilos)
-    for(int jlos=0; jlos<2; ++jlos)
-    for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){  /* skip {0,0,0}, {1,1,1} */
+    for (int ilos = 0; ilos < 2; ++ilos)  /* skip {0,0,0}, {1,1,1} */
+    for (int jlos = 0; jlos < 2; ++jlos)
+    for (int klos = (ilos==0 && jlos==0); klos < 2 - (ilos==1 && jlos==1); ++klos) {
         fprintf(stderr, "================== los div ==================\n");
         double los[3] = {ilos, jlos, klos};
         char outfile[maxlen];
