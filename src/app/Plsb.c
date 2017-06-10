@@ -1,13 +1,13 @@
-/* measure P_l(k) from subboxes */
+/* measure P_l(k) from sub-boxes */
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
 #include <math.h>
-#include "../fftgal.h"
+#include <assert.h>
+#include "../fft.h"
+#include "../gal.h"
 #include "../power.h"
-#include "../geom.h"
-#include "../io/qpm.h"
+#include "../io/io.h"
 
 
 double H(double a)
@@ -20,105 +20,95 @@ double H(double a)
 
 int main(int argc, char *argv[])
 {
-    if(argc!=10){
-        fprintf(stderr, "Usage: %s Ng L dK wisdom Nsub catdir a catid outdir\n", argv[0]);
+    if(argc!=11){
+        fprintf(stderr, "Usage: %s Ng L Nsub wisdom alpha dK indir a id outdir\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
     double L = atof(argv[2]); assert(L>0 && L<1e4);
-    double dK = atof(argv[3]); assert(dK>0 && dK <.1);
+    int Nsub = atoi(argv[3]); assert(Nsub>=2 && Nsub<=8);
     char *wisdom = argv[4];
-    int Nsub = atoi(argv[5]); assert(Nsub>=2 && Nsub<=8);
-    char *catdir = argv[6];
-    double a = atof(argv[7]); assert(a>0 && a<1.1);
-    int catid = atoi(argv[8]); assert(catid>=1 && catid<=1000);
-    char *outdir = argv[9];
+    double alpha = atof(argv[5]); assert(alpha>=0.01 && alpha<=0.1);
+    double dK = atof(argv[6]); assert(dK>0 && dK <.1);
+    char *indir = argv[7];
+    double a = atof(argv[8]); assert(a>0 && a<1.1);
+    int id = atoi(argv[9]); assert(id>=1 && id<=1000);
+    char *outdir = argv[10];
+
+    fft_t *grid = fft_init(Ng, L, wisdom);
 
     const int maxlen = 1024;
-    char catalog[maxlen];
-    int retval = snprintf(catalog, maxlen, "%s/a%.4f_%04d.mock", catdir, a, catid);
+    char infile[maxlen];
+    int retval = snprintf(infile, maxlen, "%s/a%.4f_%04d.mock", indir, a, id);
     assert(retval>=0 && retval<maxlen);
-    double *x, *y, *z, *vx, *vy, *vz, *M;
-    int *issat;
-    int Np3 = qpm_cubic_mocks_load(catalog, &x, &y, &z, &vx, &vy, &vz, &M, &issat);
-    assert(Np3>0);
-    pbc(x, y, z, Np3, L);
-
-    double Lsub = L / Nsub;
-    double Vsub = Lsub*Lsub*Lsub;
-    fftgal_t *fg = fftgal_init(Ng, L, Vsub, 1, wisdom);
+    gal_t *part = gal_loadqpm_cubic(infile, L);
 
     fprintf(stderr, "\n################## has rsd ##################\n\n");
-    double *xd=NULL, *yd=NULL, *zd=NULL;
-    double *xbb=NULL, *ybb=NULL, *zbb=NULL;
+    gal_t *partrsd = NULL, *partsub = NULL;
     for(int ilos=0; ilos<2; ++ilos)
     for(int jlos=0; jlos<2; ++jlos)
     for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){  /* skip {0,0,0}, {1,1,1} */
         fprintf(stderr, "================== los div ==================\n");
-        if(xd!=NULL) free(xd);
-        if(yd!=NULL) free(yd);
-        if(zd!=NULL) free(zd);
         double los[3] = {ilos, jlos, klos};
         double aH = a * H(a);
-        rsd(x, y, z, vx, vy, vz, Np3, &xd, &yd, &zd, los, aH);
-        pbc(xd, yd, zd, Np3, L);
+        gal_free(partrsd);
+        partrsd = gal_rsd(part, los, aH);
 
+        long Nptot = 0;
         for(int isub=0; isub<Nsub; ++isub)
         for(int jsub=0; jsub<Nsub; ++jsub)
         for(int ksub=0; ksub<Nsub; ++ksub){
             fprintf(stderr, "------------------ sub div ------------------\n");
-            if(xbb!=NULL) free(xbb);
-            if(ybb!=NULL) free(ybb);
-            if(zbb!=NULL) free(zbb);
-            double xyzlim[6] = {isub*Lsub, (isub+1)*Lsub,
-                                jsub*Lsub, (jsub+1)*Lsub,
-                                ksub*Lsub, (ksub+1)*Lsub};
-            double bbox[6] = {0, L, 0, L, 0, L};
-            int Np3bb = subbox(xd, yd, zd, Np3, xyzlim, bbox, &xbb, &ybb, &zbb, Np3);
+            double Lsub = L / Nsub;
+            double box[7] = {isub*Lsub, (isub+1)*Lsub,
+                             jsub*Lsub, (jsub+1)*Lsub,
+                             ksub*Lsub, (ksub+1)*Lsub, L};
+            gal_free(partsub);
+            partsub = gal_subbox(partrsd, box, alpha);
+            Nptot += partsub->Np;
 
-            fftgal_x2fk(fg, xbb, ybb, zbb, Np3bb);
+            fft_p2k(grid, partsub);
 
             char outfile[maxlen];
             retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd1_los%d%d%d_sb%d%d%d.txt",
-                    outdir, a, catid, ilos, jlos, klos, isub, jsub, ksub);
+                    outdir, a, id, ilos, jlos, klos, isub, jsub, ksub);
             assert(retval>=0 && retval<maxlen);
-            Pl(fg, dK, los, outfile);
+            Pl(grid, partsub, dK, los, outfile);
         }
+        assert(Nptot == part->Np);
     }
 
     fprintf(stderr, "\n################ without rsd ################\n\n");
+    long Nptot = 0;
     for(int isub=0; isub<Nsub; ++isub)
     for(int jsub=0; jsub<Nsub; ++jsub)
     for(int ksub=0; ksub<Nsub; ++ksub){
         fprintf(stderr, "================== sub div ==================\n");
-        if(xbb!=NULL) free(xbb);
-        if(ybb!=NULL) free(ybb);
-        if(zbb!=NULL) free(zbb);
-        double xyzlim[6] = {isub*Lsub, (isub+1)*Lsub,
-                            jsub*Lsub, (jsub+1)*Lsub,
-                            ksub*Lsub, (ksub+1)*Lsub};
-        double bbox[6] = {0, L, 0, L, 0, L};
-        int Np3bb = subbox(x, y, z, Np3, xyzlim, bbox, &xbb, &ybb, &zbb, Np3);
+        double Lsub = L / Nsub;
+        double box[7] = {isub*Lsub, (isub+1)*Lsub,
+                         jsub*Lsub, (jsub+1)*Lsub,
+                         ksub*Lsub, (ksub+1)*Lsub, L};
+        gal_free(partsub);
+        partsub = gal_subbox(part, box, alpha);
+        Nptot += partsub->Np;
 
-        fftgal_x2fk(fg, xbb, ybb, zbb, Np3bb);
+        fft_p2k(grid, partsub);
 
         for(int ilos=0; ilos<2; ++ilos)
         for(int jlos=0; jlos<2; ++jlos)
         for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){  /* skip {0,0,0}, {1,1,1} */
             fprintf(stderr, "------------------ los div ------------------\n");
             double los[3] = {ilos, jlos, klos};
-
             char outfile[maxlen];
             retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd0_los%d%d%d_sb%d%d%d.txt",
-                    outdir, a, catid, ilos, jlos, klos, isub, jsub, ksub);
+                    outdir, a, id, ilos, jlos, klos, isub, jsub, ksub);
             assert(retval>=0 && retval<maxlen);
-            Pl(fg, dK, los, outfile);
+            Pl(grid, partsub, dK, los, outfile);
         }
     }
+    assert(Nptot == part->Np);
 
-    free(x); free(y); free(z); free(vx); free(vy); free(vz); free(M); free(issat);
-    free(xd); free(yd); free(zd);
-    free(xbb); free(ybb); free(zbb);
-    fftgal_free(fg);
+    fft_free(grid);
+    gal_free(part); gal_free(partrsd); gal_free(partsub);
     return 0;
 }

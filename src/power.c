@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
@@ -6,7 +6,7 @@
 #include <gsl/gsl_math.h>
 #include "fft.h"
 #include "gal.h"
-#include "power_.h"
+#include "power.h"
 
 
 int Pl(fft_t *grid, gal_t *part, double dK, double los[3], char *file)
@@ -56,24 +56,29 @@ int Pl(fft_t *grid, gal_t *part, double dK, double los[3], char *file)
         alpha = (double)part->Np / part->rand->Np;
     for(int b=0; b<Nb; ++b){
         K[b] *= KF / N[b];
-        P0[b] *= 1 / (part->V * N[b]);
+        P0[b] *= 1 / part->V / N[b];
         P0[b] -= (1 + alpha) * part->V / part->Np;
-        P2[b] *= 5 / (part->V * N[b]);
-        P4[b] *= 9 / (part->V * N[b]);
-        P6[b] *= 13 / (part->V * N[b]);
+        P2[b] *= 5 / part->V / N[b];
+        P4[b] *= 9 / part->V / N[b];
+        P6[b] *= 13 / part->V / N[b];
         Ntot += N[b];
     }
     assert(Ntot == Ng*Ng*Ng-1);
 
     FILE *fp = fopen(file, "w"); assert(fp!=NULL);
-    fprintf(fp, "# Nb Ng L Np V dK los[3]\n");
-    fprintf(fp, "%d %d %ld %f %g %d %f %f %f %f\n",
-            Nb, grid->Ng, grid->L, part->Np, part->V, dK, los[0], los[1], los[2]);
+    fprintf(fp, "# Nb %d\n", Nb);
+    fprintf(fp, "# dK %g\n", dK);
+    fprintf(fp, "# Ng %d\n", grid->Ng);
+    fprintf(fp, "# L %g\n", grid->L);
+    fprintf(fp, "# Np %ld\n", part->Np);
+    fprintf(fp, "# V %g\n", part->V);
+    fprintf(fp, "# alpha %g\n", alpha);
+    fprintf(fp, "# los[3] %g %g %g\n", los[0], los[1], los[2]);
     fprintf(fp, "# K P0 P2 P4 P6 N\n");
     for(int b=0; b<Nb; ++b)
         fprintf(fp, "%e %e % e % e % e %ld\n", K[b], P0[b], P2[b], P4[b], P6[b], N[b]);
     fclose(fp);
-    fprintf(stderr, "Pl() saved %s\n", file);
+    fprintf(stderr, "Pl() saved to %s\n", file);
 
     return Nb;
 }

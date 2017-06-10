@@ -9,26 +9,28 @@ all: test_octet Pl Plsb Plss DLsb DLss
 clean:
 	rm -f test_octet Pl Plsb Plss DLsb DLss
 
-test_octet: src/tests/octet.c src/fftgal.c src/fftgal.h
-	$(CC) $(CFLAGS) src/tests/octet.c src/fftgal.c $(LIBS) -o $@
+test_octet: src/tests/octet.c src/fft.c src/fft.h src/gal.c src/gal.h
+	$(CC) $(CFLAGS) src/tests/octet.c src/fft.c src/gal.c $(LIBS) -o $@
 
-Pl: src/app/Pl.c src/fftgal.c src/fftgal.h src/power.c src/power.h \
-    src/geom.c src/geom.h src/io/qpm.c src/io/qpm.h
-	$(CC) $(CFLAGS) src/app/Pl.c src/fftgal.c src/power.c src/geom.c \
+Pl: src/app/Pl.c src/fft.c src/fft.h src/gal.c src/gal.h \
+	src/power.c src/power.h src/io/qpm.c src/io/io.h
+	$(CC) $(CFLAGS) src/app/Pl.c src/fft.c src/gal.c src/power.c \
 		src/io/qpm.c $(LIBS) -o $@
 
-Plsb: src/app/Plsb.c src/fftgal.c src/fftgal.h src/power.c src/power.h \
-    src/geom.c src/geom.h src/io/qpm.c src/io/qpm.h
-	$(CC) $(CFLAGS) src/app/Plsb.c src/fftgal.c src/power.c src/geom.c \
+Plsb: src/app/Plsb.c src/fft.c src/fft.h src/gal.c src/gal.h \
+	src/power.c src/power.h src/io/qpm.c src/io/io.h
+	$(CC) $(CFLAGS) src/app/Plsb.c src/fft.c src/gal.c src/power.c \
 		src/io/qpm.c $(LIBS) -o $@
 
-Plss: src/app/Plss.c src/fftgal.c src/fftgal.h src/power.c src/power.h \
-    src/geom.c src/geom.h src/io/qpm.c src/io/qpm.h
-	$(CC) $(CFLAGS) src/app/Plss.c src/fftgal.c src/power.c src/geom.c \
+Plss: src/app/Plss.c src/fft.c src/fft.h src/gal.c src/gal.h \
+	src/power.c src/power.h src/io/qpm.c src/io/io.h
+	$(CC) $(CFLAGS) src/app/Plss.c src/fft.c src/gal.c src/power.c \
 		src/io/qpm.c $(LIBS) $(GSL_FLAGS) -o $@
 
-DLsb: src/app/DLsb.c src/fftgal.c src/fftgal.h src/io/qpm.c src/io/qpm.h
-	$(CC) $(CFLAGS) src/app/DLsb.c src/fftgal.c src/io/qpm.c $(LIBS) -o $@
+DLsb: src/app/DLsb.c src/fft.c src/fft.h src/gal.c src/gal.h \
+	src/io/qpm.c src/io/io.h
+	$(CC) $(CFLAGS) src/app/DLsb.c src/fft.c src/gal.c src/io/qpm.c $(LIBS) -o $@
 
-DLss: src/app/DLss.c src/fftgal.c src/fftgal.h src/io/qpm.c src/io/qpm.h
-	$(CC) $(CFLAGS) src/app/DLss.c src/fftgal.c src/io/qpm.c $(LIBS) -o $@
+DLss: src/app/DLss.c src/fft.c src/fft.h src/gal.c src/gal.h \
+	src/io/qpm.c src/io/io.h
+	$(CC) $(CFLAGS) src/app/DLss.c src/fft.c src/gal.c src/io/qpm.c $(LIBS) -o $@

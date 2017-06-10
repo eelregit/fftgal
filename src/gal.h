@@ -1,6 +1,10 @@
+/* particles data type */
+
 #ifndef GAL_H
 #define GAL_H
+
 #include <math.h>
+
 
 /* squared distance with periodic boundary */
 inline double pdist2(double x0, double y0, double z0,
@@ -46,21 +50,16 @@ void gal_free(gal_t *self);
 void gal_wrap(gal_t *self, double L);
 
 /* move particles along LOS under global plane-parallel approximation
- * conformal Hubble a*H = a*H0*E(a), H0=100[h km/s/Mpc]
- * no wrapping after distortion
- * los[] doesn't have to be normalized
- */
+ * conformal Hubble a*H = a*H0*E(a), H0=100[h km/s/Mpc] */
 gal_t *gal_rsd(gal_t *self, double los[3], double aH);
 
 
 /* select Npsub particles inside a sub-box defined by
- * box = {x0, x1, y0, y1, z0, z1, L}
- * alpha = (*sub)->Np / (*rand)->Np */
+ * box = {x0, x1, y0, y1, z0, z1, L} */
 gal_t *gal_subbox(gal_t *self, double box[7], double alpha);
 
 /* select Npsub particles inside a sub-sphere defined by
- * sphere = {x0, y0, z0, R, L}
- * alpha = (*sub)->Np / (*rand)->Np */
+ * sphere = {x0, y0, z0, R, L} */
 gal_t *gal_subsphere(gal_t *self, double sphere[5], double alpha);
 
 

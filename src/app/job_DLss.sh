@@ -8,18 +8,18 @@
 APP=$SCRATCH/fftgal/DLss
 Ng=512
 L=2560
-wisdom=${Ng}.wsdm
 Nsub=4
-catdir=/project/projectdirs/boss/galaxy/QPM/dr12d_cubic_mocks
+wisdom=${Ng}.wsdm
+indir=/project/projectdirs/boss/galaxy/QPM/dr12d_cubic_mocks
 a=0.6452
 outdir=$SCRATCH/ssm.d
 
 echo ${SLURM_JOB_ID} starting $(date) on $(hostname)
 module load gcc fftw gsl
 make DLss
-for catid in $@
+for id in $@
 do
-    log=$outdir/a${a}_$(printf '%04d' $catid)/DLss.log
-    time $APP $Ng $L $wisdom $Nsub $catdir $a $catid $outdir 2> $log
+    log=$outdir/a${a}_$(printf '%04d' $id)/DLss.log
+    time $APP $Ng $L $Nsub $wisdom $indir $a $id $outdir 2> $log
 done
 echo ${SLURM_JOB_ID} ending $(date)

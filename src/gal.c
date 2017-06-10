@@ -39,12 +39,11 @@ void gal_resize(gal_t *self, long Np){
 
 
 void gal_free(gal_t *self){
-    if(self->x != NULL) free(self->x);
-    if(self->y != NULL) free(self->y);
-    if(self->z != NULL) free(self->z);
-    if(self->vx != NULL) free(self->vx);
-    if(self->vy != NULL) free(self->vy);
-    if(self->vz != NULL) free(self->vz);
+    if(self != NULL){
+        gal_free(self->rand);
+        free(self->x); free(self->y); free(self->z);
+        free(self->vx); free(self->vy); free(self->vz);
+    }
     free(self);
 }
 
@@ -64,19 +63,19 @@ void gal_wrap(gal_t *self, double L)
 
 gal_t *gal_rsd(gal_t *self, double los[3], double aH)
 {
-    gal_t *catalog = gal_init(self->Np, self->V);
+    gal_t *distorted = gal_init(self->Np, self->V);
     hat(los);
     double aHinv = 1 / aH;
     clock_t t = clock();
-    for(long p=0; p<catalog->Np; ++p){
+    for(long p=0; p<distorted->Np; ++p){
         double vdotlos = los[0]*self->vx[p] + los[1]*self->vy[p] + los[2]*self->vz[p];
-        catalog->x[p] = self->x[p] + aHinv * vdotlos * los[0];
-        catalog->y[p] = self->y[p] + aHinv * vdotlos * los[1];
-        catalog->z[p] = self->z[p] + aHinv * vdotlos * los[2];
+        distorted->x[p] = self->x[p] + aHinv * vdotlos * los[0];
+        distorted->y[p] = self->y[p] + aHinv * vdotlos * los[1];
+        distorted->z[p] = self->z[p] + aHinv * vdotlos * los[2];
     }
     fprintf(stderr, "gal_rsd() %.3fs, los[]={%.3f,%.3f,%.3f}\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, los[0], los[1], los[2]);
-    return catalog;
+    return distorted;
 }
 
 
@@ -86,24 +85,24 @@ gal_t *gal_subbox(gal_t *self, double box[7], double alpha)
     double y0 = box[2], y1 = box[3];
     double z0 = box[4], z1 = box[5];
     double L = box[6];
-    x1 += remainder(x1-x0, L); assert(x1>x0);
-    y1 += remainder(y1-y0, L); assert(y1>y0);
-    z1 += remainder(z1-z0, L); assert(z1>z0);
+    x1 = x0 + remainder(x1-x0, L); assert(x1>x0);
+    y1 = y0 + remainder(y1-y0, L); assert(y1>y0);
+    z1 = z0 + remainder(z1-z0, L); assert(z1>z0);
     double Vsub = (x1-x0) * (y1-y0) * (z1-z0);
 
-    gal_t *catalog = gal_init(self->Np, Vsub);
+    gal_t *sub = gal_init(self->Np, Vsub);
     clock_t t = clock();
     long p, Npsub;
     for(p=0, Npsub=0; p<self->Np; ++p)
-        if(self->x[p]>=x0 && self->x[p]<x1
-        && self->y[p]>=y0 && self->y[p]<y1
-        && self->z[p]>=z0 && self->z[p]<z1){
-            catalog->x[Npsub] = self->x[p];
-            catalog->y[Npsub] = self->y[p];
-            catalog->z[Npsub] = self->z[p];
+        if(remainder(self->x[p] - x0, L)>=0 && remainder(self->x[p] - x1, L)<0
+        && remainder(self->y[p] - y0, L)>=0 && remainder(self->y[p] - y1, L)<0
+        && remainder(self->z[p] - z0, L)>=0 && remainder(self->z[p] - z1, L)<0){
+            sub->x[Npsub] = self->x[p];
+            sub->y[Npsub] = self->y[p];
+            sub->z[Npsub] = self->z[p];
             ++ Npsub;
         }
-    gal_resize(catalog, Npsub);
+    gal_resize(sub, Npsub);
 
     long Nprand = lround(Npsub / alpha);
     gal_t *rand = gal_init(Nprand, Vsub);
@@ -117,11 +116,11 @@ gal_t *gal_subbox(gal_t *self, double box[7], double alpha)
         rand->y[p] = y0 + (y1-y0) * gsl_rng_uniform(rng);
         rand->z[p] = z0 + (z1-z0) * gsl_rng_uniform(rng);
     }
-    catalog->rand = rand;
+    sub->rand = rand;
 
     fprintf(stderr, "gal_subbox() %.3fs on picking out %ld+%ld particles\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Npsub, Nprand);
-    return catalog;
+    return sub;
 }
 
 
@@ -132,17 +131,17 @@ gal_t *gal_subsphere(gal_t *self, double sphere[5], double alpha)
     double R2 = R*R, Vsub = 4*M_PI/3 * R2*R;
     assert(2*R <= L);
 
-    gal_t *catalog = gal_init(self->Np, Vsub);
+    gal_t *sub = gal_init(self->Np, Vsub);
     clock_t t = clock();
     long p, Npsub;
     for(p=0, Npsub=0; p<self->Np; ++p)
         if(pdist2(self->x[p], self->y[p], self->z[p], x0, y0, z0, L) < R2){
-            catalog->x[Npsub] = self->x[p];
-            catalog->y[Npsub] = self->y[p];
-            catalog->z[Npsub] = self->z[p];
+            sub->x[Npsub] = self->x[p];
+            sub->y[Npsub] = self->y[p];
+            sub->z[Npsub] = self->z[p];
             ++ Npsub;
         }
-    gal_resize(catalog, Npsub);
+    gal_resize(sub, Npsub);
 
     long Nprand = lround(Npsub / alpha);
     gal_t *rand = gal_init(Nprand, Vsub);
@@ -158,9 +157,9 @@ gal_t *gal_subsphere(gal_t *self, double sphere[5], double alpha)
             rand->z[p] = z0 + R * (2*gsl_rng_uniform(rng) - 1);
         }while(pdist2(rand->x[p], rand->y[p], rand->z[p], x0, y0, z0, L) >= R2);
     }
-    catalog->rand = rand;
+    sub->rand = rand;
 
     fprintf(stderr, "gal_subsphere() %.3fs on picking out %ld+%ld particles\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Npsub, Nprand);
-    return catalog;
+    return sub;
 }

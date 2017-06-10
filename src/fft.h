@@ -1,7 +1,10 @@
+/* grid data type */
+
 #ifndef FFT_H
 #define FFT_H
 
 #include <fftw3.h>
+#include "gal.h"
 
 /* field value in configuration space */
 #define F(self,i,j,k) (self->f[((long)(k) + self->Ng_pad * ((long)(j) + self->Ng * (long)(i)))])
@@ -24,18 +27,20 @@ fft_t *fft_init(int Ng, double L, char *wisdom);
 void fft_free(fft_t *self);
 
 
-void fft_p2g(fft_t *self, gal_t *catalog, double offset[3]);
+void fft_p2g(fft_t *self, gal_t *part, double offset[3]);
 double *fft_g2p(fft_t *self, gal_t *pos);
 
 
-void fft_x2k(fft_t *self);
-void fft_k2x(fft_t *self);
+void fft_x2k(fft_t *self, int offset_phase_on);
+void fft_k2x(fft_t *self, int offset_phase_off);
+/* apply (onoff>0) or remove applied (onoff<0) offset phase */
+void fft_offset_phase(fft_t *self, int onoff);
 
 
 void fft_deconv(fft_t *self);
 
-/* simple interface to do interlaced painting+FFT, and average before deconvolve */
-void fft_p2k(fft_t *self, gal_t *catalog);
+/* simple interlacing interface = (paint + FFT) x 2 + average + deconvolve */
+void fft_p2k(fft_t *self, gal_t *part);
 
 
 double *fft_exportf(fft_t *self);

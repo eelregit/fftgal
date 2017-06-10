@@ -9,19 +9,20 @@
 APP=$SCRATCH/fftgal/Plsb
 Ng=512
 L=2560
-dK=0.01
-wisdom=${Ng}.wsdm
 Nsub=4
-catdir=/project/projectdirs/boss/galaxy/QPM/dr12d_cubic_mocks
+wisdom=${Ng}.wsdm
+alpha=0.02
+dK=0.01
+indir=/project/projectdirs/boss/galaxy/QPM/dr12d_cubic_mocks
 a=0.6452
 outdir=$SCRATCH/ssm.d
 
 echo ${SLURM_JOB_ID} starting $(date) on $(hostname)
 module load gcc fftw gsl
 make Plsb
-for catid in $@
+for id in $@
 do
-    log=$outdir/a${a}_$(printf '%04d' $catid)/Plsb.log
-    time GSL_RNG_SEED=$catid $APP $Ng $L $dK $wisdom $Nsub $catdir $a $catid $outdir 2> $log
+    log=$outdir/a${a}_$(printf '%04d' $id)/Plsb.log
+    time GSL_RNG_SEED=$id $APP $Ng $L $Nsub $wisdom $alpha $dK $indir $a $id $outdir 2> $log
 done
 echo ${SLURM_JOB_ID} ending $(date)

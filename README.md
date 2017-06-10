@@ -3,3 +3,4 @@
 * 3D, cubic, in-place FFT using FFTW
 * paint with PCS scheme
 * optional interlacing (Sefusatti et al. 2016)
+* automatic folding

@@ -2,11 +2,12 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
 #include <math.h>
+#include <assert.h>
 #include <gsl/gsl_math.h>
-#include "../fftgal.h"
-#include "../io/qpm.h"
+#include "../fft.h"
+#include "../gal.h"
+#include "../io/io.h"
 
 
 /* use bias!=1 to rescale to matter overdensity if it's known,
@@ -17,29 +18,26 @@ const double bias = 1;
 int main(int argc, char *argv[])
 {
     if(argc!=9){
-        fprintf(stderr, "Usage: %s Ng L wisdom Nsub catdir a catid outdir\n", argv[0]);
+        fprintf(stderr, "Usage: %s Ng L Nsub wisdom indir a id outdir\n", argv[0]);
         exit(EXIT_SUCCESS);
     }
     int Ng = atoi(argv[1]); assert(Ng>1 && Ng<=1024);
     double L = atof(argv[2]); assert(L>0 && L<1e4);
-    char *wisdom = argv[3];
-    int Nsub = atoi(argv[4]); assert(Nsub>=2 && Nsub<=8);
-    char *catdir = argv[5];
+    int Nsub = atoi(argv[3]); assert(Nsub>=2 && Nsub<=8);
+    char *wisdom = argv[4];
+    char *indir = argv[5];
     double a = atof(argv[6]); assert(a>0 && a<1.1);
-    int catid = atoi(argv[7]); assert(catid>=1 && catid<=1000);
+    int id = atoi(argv[7]); assert(id>=1 && id<=1000);
     char *outdir = argv[8];
     int Ngsub = Ng / Nsub; assert(Ng%Nsub==0);
 
-    const int maxlen = 1024;
-    char catalog[maxlen];
-    int retval = snprintf(catalog, maxlen, "%s/a%.4f_%04d.mock", catdir, a, catid);
-    assert(retval>=0 && retval<maxlen);
-    double *x, *y, *z, *vx, *vy, *vz, *M;
-    int *issat;
-    int Np3 = qpm_cubic_mocks_load(catalog, &x, &y, &z, &vx, &vy, &vz, &M, &issat);
-    assert(Np3>0);
+    fft_t *grid = fft_init(Ng, L, wisdom);
 
-    fftgal_t *fg = fftgal_init(Ng, L, -1, 1, wisdom);
+    const int maxlen = 1024;
+    char infile[maxlen];
+    int retval = snprintf(infile, maxlen, "%s/a%.4f_%04d.mock", indir, a, id);
+    assert(retval>=0 && retval<maxlen);
+    gal_t *part = gal_loadqpm_cubic(infile, L);
 
     double *fk_copy = NULL;
     double Wamp[Ng], Wph[3*Ng][2];  /* subbox smoothing */
@@ -54,22 +52,19 @@ int main(int argc, char *argv[])
     for(int jlos=0; jlos<2; ++jlos)
     for(int klos=0+(ilos==0 && jlos==0); klos<2-(ilos==1 && jlos==1); ++klos){  /* skip {0,0,0}, {1,1,1} */
         fprintf(stderr, "================== los div ==================\n");
-        double losamp = sqrt(ilos*ilos + jlos*jlos + klos*klos);
-        double loshat[3];
-        loshat[0] = ilos / losamp;
-        loshat[1] = jlos / losamp;
-        loshat[2] = klos / losamp;
+        double los[3] = {ilos, jlos, klos};
+        hat(los);
 
         double DeltaL[3*Nsub*Nsub*Nsub];
-        for(int L_half=0; L_half<=2; ++L_half){
+        for(int Lhalf=0; Lhalf<=2; ++Lhalf){
             if(fk_copy==NULL){
                 double offset[3] = {0.5, 0.5, 0.5};
-                fftgal_x2fx(fg, x, y, z, Np3, offset);
-                fftgal_fx2fk(fg);
-                fk_copy = fftgal_exportf(fg);
+                fft_p2g(grid, part, offset);
+                fft_x2k(grid, 0);  /* do not apply offset phase */
+                fk_copy = fft_exportf(grid);
             }
             else
-                fftgal_importf(fg, fk_copy);
+                fft_importf(grid, fk_copy);
 
             double Kval[Ng];
             Kval[0] = 0;
@@ -77,32 +72,33 @@ int main(int argc, char *argv[])
                 Kval[i] = i;
                 Kval[Ng-i] = - i;
             }
-            fg->f[0] = 0;
+            grid->f[0] = 0;
             for(int i=0; i<Ng; ++i)
             for(int j=0; j<Ng; ++j)
             for(int k=(i==0 && j==0); k<=Ng/2; ++k){  /* skip {0,0,0} */
                 double Kamp = sqrt(gsl_pow_2(Kval[i]) + gsl_pow_2(Kval[j]) + gsl_pow_2(Kval[k]));
-                double mu2 = gsl_pow_2((Kval[i]*loshat[0] + Kval[j]*loshat[1] + Kval[k]*loshat[2]) / Kamp);
+                double mu2 = gsl_pow_2((Kval[i]*los[0] + Kval[j]*los[1] + Kval[k]*los[2]) / Kamp);
                 double Legendre[3] = {1, 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
                 double Wamp3 = Wamp[i] * Wamp[j] * Wamp[k];
                 double W_re = Wph[i+j+k][0] * Wamp3;
                 double W_im = Wph[i+j+k][1] * Wamp3;
-                double f_re = F_Re(fg,i,j,k);
-                double f_im = F_Im(fg,i,j,k);
-                F_Re(fg,i,j,k) = Legendre[L_half] * (f_re*W_re - f_im*W_im);
-                F_Im(fg,i,j,k) = Legendre[L_half] * (f_re*W_im + f_im*W_re);
+                double f_re = F_Re(grid,i,j,k);
+                double f_im = F_Im(grid,i,j,k);
+                F_Re(grid,i,j,k) = Legendre[Lhalf] * (f_re*W_re - f_im*W_im);
+                F_Im(grid,i,j,k) = Legendre[Lhalf] * (f_re*W_im + f_im*W_re);
             }
 
-            fftgal_fk2fx(fg);
+            fft_k2x(grid, 0);
             for(int isub=0; isub<Nsub; ++isub)
             for(int jsub=0; jsub<Nsub; ++jsub)
             for(int ksub=0; ksub<Nsub; ++ksub)
-                DeltaL[((L_half*Nsub + isub)*Nsub + jsub)*Nsub + ksub] = F(fg, isub*Ngsub, jsub*Ngsub, ksub*Ngsub) / bias;
+                DeltaL[((Lhalf*Nsub + isub)*Nsub + jsub)*Nsub + ksub]
+                    = F(grid, isub*Ngsub, jsub*Ngsub, ksub*Ngsub) / bias;
         }
 
         char outfile[maxlen];
         retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/DLsb_los%d%d%d.txt",
-                outdir, a, catid, ilos, jlos, klos);
+                outdir, a, id, ilos, jlos, klos);
         assert(retval>=0 && retval<maxlen);
         FILE *fp = fopen(outfile, "w"); assert(fp!=NULL);
         fprintf(fp, "# ijk_sub Delta_0 Delta_2 Delta_4\n");
@@ -116,8 +112,8 @@ int main(int argc, char *argv[])
         fclose(fp);
     }
 
-    free(x); free(y); free(z); free(vx); free(vy); free(vz); free(M); free(issat);
     free(fk_copy);
-    fftgal_free(fg);
+    fft_free(grid);
+    gal_free(part);
     return 0;
 }

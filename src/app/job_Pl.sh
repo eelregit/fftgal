@@ -9,19 +9,19 @@
 APP=$SCRATCH/fftgal/Pl
 Ng=512
 L=2560
-dK=0.01
-wisdom=${Ng}.wsdm
 fold=1
-catdir=/project/projectdirs/boss/galaxy/QPM/dr12d_cubic_mocks
+wisdom=${Ng}.wsdm
+dK=0.01
+indir=/project/projectdirs/boss/galaxy/QPM/dr12d_cubic_mocks
 a=0.6452
 outdir=$SCRATCH/ssm.d
 
 echo ${SLURM_JOB_ID} starting $(date) on $(hostname)
 module load gcc fftw gsl
 make Pl
-for catid in $@
+for id in $@
 do
-    log=$outdir/a${a}_$(printf '%04d' $catid)/Pl.log
-    time $APP $Ng $L $dK $wisdom $fold $catdir $a $catid $outdir 2> $log
+    log=$outdir/a${a}_$(printf '%04d' $id)/Pl.log
+    time $APP $Ng $L $fold $wisdom $dK $indir $a $id $outdir 2> $log
 done
 echo ${SLURM_JOB_ID} ending $(date)
