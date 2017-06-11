@@ -11,18 +11,15 @@
 
 
 fft_t *fft_init(int Ng, double L, char *wisdom) {
+    fprintf(stderr, "fft_init() making a %d^3 grid in a %g^3 box\n", Ng, L);
     fft_t *self = (fft_t *)malloc(sizeof(fft_t)); assert(self!=NULL);
-    for (int i = 0; i < 3; ++i)
-        self->offset[i] = 0;
     self->Ng = Ng;
     self->L = L;
-    fprintf(stderr, "fft_init() making a %d^3 grid in a %g^3 box\n", Ng, L);
-
-    int Ng_pad = 2 * (Ng / 2 + 1);
-    self->Ng_pad = Ng_pad;
-    long Ng3_pad = (long)Ng * Ng * Ng_pad;
-    self->Ng3_pad  = Ng3_pad;
-    double *fx = (double *)fftw_malloc(Ng3_pad * sizeof(double)); assert(fx!=NULL);
+    for (int i = 0; i < 3; ++i)
+        self->offset[i] = 0;
+    self->Ng_pad = 2 * (Ng / 2 + 1);
+    self->Ng3_pad = (long)Ng * Ng * self->Ng_pad;
+    double *fx = (double *)fftw_malloc(self->Ng3_pad * sizeof(double)); assert(fx!=NULL);
     fftw_complex *fk = (fftw_complex *)fx;
     self->f = fx;
 
@@ -46,7 +43,6 @@ fft_t *fft_init(int Ng, double L, char *wisdom) {
                     (double)(clock()-t)/CLOCKS_PER_SEC);
         }
     }
-
     return self;
 }
 
@@ -59,13 +55,12 @@ void fft_free(fft_t *self) {
 
 
 void fft_p2g(fft_t *self, gal_t *part, double offset[3]) {
+    clock_t t = clock();
     int Ng = self->Ng;
     for (int i = 0; i < 3; ++i) {
         offset[i] = remainder(offset[i], Ng);
         self->offset[i] = offset[i];
     }
-
-    clock_t t = clock();
     for (long g = 0; g < self->Ng3_pad; ++g)  /* must zero after fftw_plan */
         self->f[g] = 0;
     double Hinv = Ng / self->L;
@@ -137,14 +132,15 @@ void fft_p2g(fft_t *self, gal_t *part, double offset[3]) {
 
 
 double *fft_g2p(fft_t *self, gal_t *pos) {
-    double *f_interp = (double *)malloc(pos->Np * sizeof(double)); assert(f_interp!=NULL);
     clock_t t = clock();
+    double *f_interp = (double *)malloc(pos->Np * sizeof(double)); assert(f_interp!=NULL);
     int Ng = self->Ng;
+    double *offset = self->offset;
     double Hinv = Ng / self->L;
     for (long p = 0; p < pos->Np; ++p) {
-        double x = pos->x[p] * Hinv;
-        double y = pos->y[p] * Hinv;
-        double z = pos->z[p] * Hinv;
+        double x = pos->x[p] * Hinv - offset[0];
+        double y = pos->y[p] * Hinv - offset[1];
+        double z = pos->z[p] * Hinv - offset[2];
         int gi1 = (int)floor(x);
         int gj1 = (int)floor(y);
         int gk1 = (int)floor(z);
@@ -188,7 +184,7 @@ void fft_x2k(fft_t *self, int offset_phase_on) {
 void fft_k2x(fft_t *self, int offset_phase_off) {
     clock_t t = clock();
     fftw_execute(self->k2x);
-    double L3inv = 1 / gsl_pow_3(self->L);  /* inverse box volume */
+    double L3inv = 1 / gsl_pow_3(self->L);
     for (long g = 0; g < self->Ng3_pad; ++g)
         self->f[g] *= L3inv;
     if (offset_phase_off)
@@ -231,13 +227,14 @@ void fft_offset_phase(fft_t *self, int onoff) {
                         - phase[0][i][1] * phase[1][j][1] * phase[2][k][1];
         double field_re = F_Re(self,i,j,k);
         double field_im = F_Im(self,i,j,k);
-        F_Re(self,i,j,k) = (field_re*phase_re - field_im*phase_im);
-        F_Im(self,i,j,k) = (field_re*phase_im + field_im*phase_re);
+        F_Re(self,i,j,k) = field_re*phase_re - field_im*phase_im;
+        F_Im(self,i,j,k) = field_re*phase_im + field_im*phase_re;
     }
 }
 
 
 void fft_deconv(fft_t *self) {
+    clock_t t = clock();
     int Ng = self->Ng;
     double Winv[Ng];
     Winv[0] = 1;
@@ -246,7 +243,6 @@ void fft_deconv(fft_t *self) {
         Winv[i] = gsl_pow_4(arg / sin(arg));
         Winv[Ng-i] = Winv[i];
     }
-    clock_t t = clock();
     for (int i = 0; i < Ng; ++i)
     for (int j = 0; j < Ng; ++j)
     for (int k = 0; k <= Ng/2; ++k) {

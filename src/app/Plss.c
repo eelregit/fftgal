@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
             retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd1_los%d%d%d_ss%d%d%d.txt",
                     outdir, a, id, ilos, jlos, klos, isub, jsub, ksub);
             assert(retval>=0 && retval<maxlen);
-            Pl(grid, partsub, dK, los, outfile);
+            Pl(grid, partsub, los, dK, outfile);
         }
     }
 
@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
             retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd0_los%d%d%d_ss%d%d%d.txt",
                     outdir, a, id, ilos, jlos, klos, isub, jsub, ksub);
             assert(retval>=0 && retval<maxlen);
-            Pl(grid, partsub, dK, los, outfile);
+            Pl(grid, partsub, los, dK, outfile);
         }
     }
 

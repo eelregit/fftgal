@@ -7,6 +7,7 @@
 
 
 gal_t *gal_loadqpm_cubic(char *file, double L) {
+    clock_t t = clock();
     FILE *fp = fopen(file, "r"); assert(fp!=NULL);
     int Np = 0, c;
     while ((c = fgetc(fp)) != EOF)
@@ -20,8 +21,6 @@ gal_t *gal_loadqpm_cubic(char *file, double L) {
     part->vx = (double *)malloc(Np * sizeof(double)); assert(part->vx!=NULL);
     part->vy = (double *)malloc(Np * sizeof(double)); assert(part->vy!=NULL);
     part->vz = (double *)malloc(Np * sizeof(double)); assert(part->vz!=NULL);
-
-    clock_t t = clock();
     for (int i = 0; i < Np; ++i) {
         int retval = fscanf(fp, "%lf %lf %lf %lf %lf %lf %*f %*d %*d\n",
                 part->x+i, part->y+i, part->z+i,
@@ -29,8 +28,7 @@ gal_t *gal_loadqpm_cubic(char *file, double L) {
         assert(retval == 6);
     }
     fclose(fp);
-    fprintf(stderr, "gal_loadqpm_cubic() %.3fs on loading %d galaxies\n",
+    fprintf(stderr, "gal_loadqpm_cubic() %.3fs, loaded %d galaxies\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Np);
-
     return part;
 }

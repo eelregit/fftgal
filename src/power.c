@@ -9,7 +9,8 @@
 #include "power.h"
 
 
-int Pl(fft_t *grid, gal_t *part, double dK, double los[3], char *file) {
+void Pl(fft_t *grid, gal_t *part, double los[3], double dK, char *file) {
+    clock_t t = clock();
     int Ng = grid->Ng;
     hat(los);
     double KF = 2*M_PI / grid->L;
@@ -21,7 +22,6 @@ int Pl(fft_t *grid, gal_t *part, double dK, double los[3], char *file) {
         K[b] = P0[b] = P2[b] = P4[b] = P6[b] = 0;
         N[b] = 0;
     }
-    clock_t t = clock();
     double Kval[Ng];
     Kval[0] = 0;
     for (int i = 1; i <= Ng/2; ++i) {
@@ -44,8 +44,6 @@ int Pl(fft_t *grid, gal_t *part, double dK, double los[3], char *file) {
         P6[b] += delta2 * (((14.4375*mu2 - 19.6875)*mu2 + 6.5625)*mu2 - 0.3125);
         N[b] += count;
     }
-    fprintf(stderr, "Pl() %.3fs on binning, los[]={%.3f,%.3f,%.3f}\n",
-            (double)(clock()-t)/CLOCKS_PER_SEC, los[0], los[1], los[2]);
 
     long Ntot = 0;
     double alpha;
@@ -56,7 +54,7 @@ int Pl(fft_t *grid, gal_t *part, double dK, double los[3], char *file) {
     for (int b = 0; b < Nb; ++b) {
         K[b] *= KF / N[b];
         P0[b] *= 1 / part->V / N[b];
-        P0[b] -= (1 + alpha) * part->V / part->Np;
+        P0[b] -= (1 + alpha) * part->V / part->Np;  /* subtract shot noise */
         P2[b] *= 5 / part->V / N[b];
         P4[b] *= 9 / part->V / N[b];
         P6[b] *= 13 / part->V / N[b];
@@ -79,5 +77,6 @@ int Pl(fft_t *grid, gal_t *part, double dK, double los[3], char *file) {
     fclose(fp);
     fprintf(stderr, "Pl() saved to %s\n", file);
 
-    return Nb;
+    fprintf(stderr, "Pl() %.3fs, los[]={%.3f,%.3f,%.3f}\n",
+            (double)(clock()-t)/CLOCKS_PER_SEC, los[0], los[1], los[2]);
 }

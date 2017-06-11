@@ -1,4 +1,4 @@
-/* particles data type */
+/* galaxies/particles data type */
 
 #ifndef GAL_H
 #define GAL_H
@@ -17,18 +17,18 @@ inline double pdist2(double x0, double y0, double z0,
 
 /* normalize a vector */
 inline void hat(double vec[3]) {
-    double vecamp = sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
-    if (vecamp > 1e-7) {
-        vec[0] /= vecamp;
-        vec[1] /= vecamp;
-        vec[2] /= vecamp;
+    double amp = sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
+    if (amp > 1e-7) {
+        vec[0] /= amp;
+        vec[1] /= amp;
+        vec[2] /= amp;
     }
 }
 
 
 typedef struct gal {
     long Np;
-    double V;  /* volume */
+    double V;  /* [Mpc^3/h^3] */
     /* phase space */
     double *x, *y, *z;  /* [Mpc/h] */
     double *vx, *vy, *vz;  /* [km/s], optional */
@@ -38,14 +38,13 @@ typedef struct gal {
     struct gal *rand;
 } gal_t;
 
+
 gal_t *gal_init(long Np, double V);
-
 void gal_resize(gal_t *self, long Np);
-
 void gal_free(gal_t *self);
 
 
-/* move particles back into periodic boundary */
+/* move particles periodically back into [0,L)^3 */
 void gal_wrap(gal_t *self, double L);
 
 
@@ -54,11 +53,10 @@ void gal_wrap(gal_t *self, double L);
 gal_t *gal_rsd(gal_t *self, double los[3], double aH);
 
 
-/* select Npsub particles inside a sub-box defined by
+/* select particles inside a sub-box defined by
  * box = {x0, x1, y0, y1, z0, z1, L} */
 gal_t *gal_subbox(gal_t *self, double box[7], double alpha);
-
-/* select Npsub particles inside a sub-sphere defined by
+/* select particles inside a sub-sphere defined by
  * sphere = {x0, y0, z0, R, L} */
 gal_t *gal_subsphere(gal_t *self, double sphere[5], double alpha);
 

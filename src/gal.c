@@ -49,8 +49,8 @@ void gal_free(gal_t *self) {
 
 
 void gal_wrap(gal_t *self, double L) {
-    double Linv = 1 / L;
     clock_t t = clock();
+    double Linv = 1 / L;
     for (long p = 0; p < self->Np; ++p) {
         self->x[p] -= L * floor(self->x[p] * Linv);
         self->y[p] -= L * floor(self->y[p] * Linv);
@@ -61,10 +61,10 @@ void gal_wrap(gal_t *self, double L) {
 
 
 gal_t *gal_rsd(gal_t *self, double los[3], double aH) {
-    gal_t *distorted = gal_init(self->Np, self->V);
+    clock_t t = clock();
     hat(los);
     double aHinv = 1 / aH;
-    clock_t t = clock();
+    gal_t *distorted = gal_init(self->Np, self->V);
     for (long p = 0; p < distorted->Np; ++p) {
         double vdotlos = los[0]*self->vx[p] + los[1]*self->vy[p] + los[2]*self->vz[p];
         distorted->x[p] = self->x[p] + aHinv * vdotlos * los[0];
@@ -78,17 +78,16 @@ gal_t *gal_rsd(gal_t *self, double los[3], double aH) {
 
 
 gal_t *gal_subbox(gal_t *self, double box[7], double alpha) {
+    clock_t t = clock();
     double x0 = box[0], x1 = box[1];
     double y0 = box[2], y1 = box[3];
-    double z0 = box[4], z1 = box[5];
-    double L = box[6];
+    double z0 = box[4], z1 = box[5], L = box[6];
     x1 = x0 + remainder(x1 - x0, L); assert(x1 > x0);
     y1 = y0 + remainder(y1 - y0, L); assert(y1 > y0);
     z1 = z0 + remainder(z1 - z0, L); assert(z1 > z0);
     double Vsub = (x1-x0) * (y1-y0) * (z1-z0);
 
     gal_t *sub = gal_init(self->Np, Vsub);
-    clock_t t = clock();
     long p, Npsub;
     for (p = 0, Npsub = 0; p < self->Np; ++p)
         if (remainder(self->x[p] - x0, L) >= 0 && remainder(self->x[p] - x1, L) < 0
@@ -115,20 +114,19 @@ gal_t *gal_subbox(gal_t *self, double box[7], double alpha) {
     }
     sub->rand = rand;
 
-    fprintf(stderr, "gal_subbox() %.3fs on picking out %ld+%ld particles\n",
+    fprintf(stderr, "gal_subbox() %.3fs, picked out %ld+%ld particles\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Npsub, Nprand);
     return sub;
 }
 
 
 gal_t *gal_subsphere(gal_t *self, double sphere[5], double alpha) {
+    clock_t t = clock();
     double x0 = sphere[0], y0 = sphere[1], z0 = sphere[2];
-    double R = sphere[3], L = sphere[4];
+    double R = sphere[3], L = sphere[4]; assert(2*R <= L);
     double R2 = R*R, Vsub = 4*M_PI/3 * R2*R;
-    assert(2*R <= L);
 
     gal_t *sub = gal_init(self->Np, Vsub);
-    clock_t t = clock();
     long p, Npsub;
     for (p = 0, Npsub = 0; p < self->Np; ++p)
         if (pdist2(self->x[p], self->y[p], self->z[p], x0, y0, z0, L) < R2) {
@@ -155,7 +153,7 @@ gal_t *gal_subsphere(gal_t *self, double sphere[5], double alpha) {
     }
     sub->rand = rand;
 
-    fprintf(stderr, "gal_subsphere() %.3fs on picking out %ld+%ld particles\n",
+    fprintf(stderr, "gal_subsphere() %.3fs, picked out %ld+%ld particles\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Npsub, Nprand);
     return sub;
 }

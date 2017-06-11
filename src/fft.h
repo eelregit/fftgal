@@ -7,7 +7,7 @@
 #include "gal.h"
 
 /* field value in configuration space */
-#define F(self,i,j,k) (self->f[((long)(k) + self->Ng_pad * ((long)(j) + self->Ng * (long)(i)))])
+#define F(self,i,j,k) (self->f[(((long)(i) * self->Ng + (long)(j)) * self->Ng_pad + (long)(k))])
 /* field value in Fourier space */
 #define F_Re(self,i,j,k) F(self,i,j,2*k)
 #define F_Im(self,i,j,k) F(self,i,j,2*k+1)
@@ -16,12 +16,13 @@
 typedef struct fft {
     fftw_plan x2k, k2x;
     double *f;  /* in-place: fk = (fftw_complex *)fx */
-    double offset[3];  /* grid (Dirac comb Ш) wrt boundary [0,L)^3 in grid unit */
     int Ng;
-    int Ng_pad;  /* 2 * (Ng/2 + 1) */
+    int Ng_pad;  /* 2 * (Ng/2 + 1) for in-place FFTW */
     long Ng3_pad;  /* sizeof(f) / sizeof(double) */
     double L;  /* [Mpc/h] */
+    double offset[3];  /* grid (Dirac comb Ш) wrt boundary [0,L)^3 in grid unit */
 } fft_t;
+
 
 fft_t *fft_init(int Ng, double L, char *wisdom);
 void fft_free(fft_t *self);

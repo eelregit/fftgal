@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
         double los[3] = {ilos, jlos, klos};
         hat(los);
 
-        double DeltaL[3*Nsub*Nsub*Nsub];
+        double DeltaL[3][Nsub*Nsub*Nsub];
         for (int Lhalf = 0; Lhalf <= 2; ++Lhalf) {
             if (fk_copy == NULL) {
                 double offset[3] = {0.5, 0.5, 0.5};
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
             for (int isub = 0; isub < Nsub; ++isub)
             for (int jsub = 0; jsub < Nsub; ++jsub)
             for (int ksub = 0; ksub < Nsub; ++ksub)
-                DeltaL[((Lhalf*Nsub + isub)*Nsub + jsub)*Nsub + ksub]
+                DeltaL[Lhalf][(isub*Nsub + jsub)*Nsub + ksub]
                     = F(grid, isub*Ngsub, jsub*Ngsub, ksub*Ngsub) / bias;
         }
 
@@ -105,9 +105,9 @@ int main(int argc, char *argv[]) {
         for (int jsub = 0; jsub < Nsub; ++jsub)
         for (int ksub = 0; ksub < Nsub; ++ksub)
             fprintf(fp, "%d%d%d % e % e % e\n", isub, jsub, ksub,
-                    DeltaL[((0*Nsub + isub)*Nsub + jsub)*Nsub + ksub],
-                    DeltaL[((1*Nsub + isub)*Nsub + jsub)*Nsub + ksub],
-                    DeltaL[((2*Nsub + isub)*Nsub + jsub)*Nsub + ksub]);
+                    DeltaL[0][(isub*Nsub + jsub)*Nsub + ksub],
+                    DeltaL[1][(isub*Nsub + jsub)*Nsub + ksub],
+                    DeltaL[2][(isub*Nsub + jsub)*Nsub + ksub]);
         fclose(fp);
     }
 
