@@ -7,8 +7,8 @@
 
 
 /* squared distance with periodic boundary */
-inline double pdist2(double x0, double y0, double z0,
-                     double x1, double y1, double z1, double L) {
+inline double pdist2(double x1, double y1, double z1,
+                     double x0, double y0, double z0, double L) {
     double dx = remainder(x1 - x0, L);
     double dy = remainder(y1 - y0, L);
     double dz = remainder(z1 - z0, L);

@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     fft_t *grid = fft_init(Ng, Lfd, wisdom);
 
     const int maxlen = 1024;
-    char infile[maxlen];
+    char infile[maxlen], outfile[maxlen];
     int retval = snprintf(infile, maxlen, "%s/a%.4f_%04d.mock", indir, a, id);
     assert(retval>=0 && retval<maxlen);
     gal_t *part = gal_loadqpm_cubic(infile, L);
@@ -54,29 +54,42 @@ int main(int argc, char *argv[]) {
 
         fft_p2k(grid, partrsd);
 
-        char outfile[maxlen];
+        P(grid, partrsd);
+
         retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd1_los%d%d%d_fd%d.txt",
                 outdir, a, id, ilos, jlos, klos, fold);
         assert(retval>=0 && retval<maxlen);
         Pl(grid, partrsd, los, dK, outfile);
+        retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pmu_rsd1_los%d%d%d_fd%d.txt",
+                outdir, a, id, ilos, jlos, klos, fold);
+        assert(retval>=0 && retval<maxlen);
+        Pmu(grid, partrsd, los, dK, outfile);
     }
 
     fprintf(stderr, "\n################ without rsd ################\n\n");
 
     fft_p2k(grid, part);
+    double *fk_copy = fft_exportf(grid);
 
     for (int ilos = 0; ilos < 2; ++ilos)  /* skip {0,0,0}, {1,1,1} */
     for (int jlos = 0; jlos < 2; ++jlos)
     for (int klos = (ilos==0 && jlos==0); klos < 2 - (ilos==1 && jlos==1); ++klos) {
         fprintf(stderr, "================== los div ==================\n");
+        fft_importf(grid, fk_copy);
+        P(grid, part);
+
         double los[3] = {ilos, jlos, klos};
-        char outfile[maxlen];
         retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd0_los%d%d%d_fd%d.txt",
                 outdir, a, id, ilos, jlos, klos, fold);
         assert(retval>=0 && retval<maxlen);
         Pl(grid, part, los, dK, outfile);
+        retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pmu_rsd0_los%d%d%d_fd%d.txt",
+                outdir, a, id, ilos, jlos, klos, fold);
+        assert(retval>=0 && retval<maxlen);
+        Pmu(grid, part, los, dK, outfile);
     }
 
+    free(fk_copy);
     fft_free(grid);
     gal_free(part); gal_free(partrsd);
     return 0;

@@ -2,8 +2,8 @@
 #SBATCH --ntasks=1
 #SBATCH --partition=shared
 #SBATCH --time=3:00:00
-#SBATCH --job-name=Plfd
-#SBATCH --output=Pl%j.out
+#SBATCH --job-name=Pfd
+#SBATCH --output=P%j.out
 
 APP=$SCRATCH/fftgal/Pl
 Ng=128
@@ -20,7 +20,7 @@ module load gcc fftw gsl
 make Pl
 for id in $@
 do
-    log=$outdir/a${a}_$(printf '%04d' $id)/Plfd.log
+    log=$outdir/a${a}_$(printf '%04d' $id)/Pfd.log
     time $APP $Ng $L $fold $wisdom $dK $indir $a $id $outdir 2> $log
 done
 echo ${SLURM_JOB_ID} ending $(date)

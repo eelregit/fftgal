@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --ntasks=1
 #SBATCH --partition=shared
-#SBATCH --mem=4GB
-#SBATCH --time=9:00:00
-#SBATCH --job-name=Plss
-#SBATCH --output=Pl%j.out
+#SBATCH --mem=5GB
+#SBATCH --time=12:00:00
+#SBATCH --job-name=Pss
+#SBATCH --output=P%j.out
 
 APP=$SCRATCH/fftgal/Plss
 Ng=512
@@ -22,7 +22,7 @@ module load gcc fftw gsl
 make Plss
 for id in $@
 do
-    log=$outdir/a${a}_$(printf '%04d' $id)/Plss.log
+    log=$outdir/a${a}_$(printf '%04d' $id)/Pss.log
     time GSL_RNG_SEED=$id $APP $Ng $L $Nsub $wisdom $alpha $dK $indir $a $id $outdir 2> $log
 done
 echo ${SLURM_JOB_ID} ending $(date)

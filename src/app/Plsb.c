@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include <time.h>
 #include "../fft.h"
 #include "../gal.h"
 #include "../power.h"
@@ -32,11 +33,12 @@ int main(int argc, char *argv[]) {
     double a = atof(argv[8]); assert(a>0 && a<1.1);
     int id = atoi(argv[9]); assert(id>=1 && id<=1000);
     char *outdir = argv[10];
+    int Ngsub = Ng / Nsub; assert(Ng%Nsub == 0);
 
     fft_t *grid = fft_init(Ng, L, wisdom);
 
     const int maxlen = 1024;
-    char infile[maxlen];
+    char infile[maxlen], outfile[maxlen];
     int retval = snprintf(infile, maxlen, "%s/a%.4f_%04d.mock", indir, a, id);
     assert(retval>=0 && retval<maxlen);
     gal_t *part = gal_loadqpm_cubic(infile, L);
@@ -67,17 +69,35 @@ int main(int argc, char *argv[]) {
 
             fft_p2k(grid, partsub);
 
-            char outfile[maxlen];
+            P(grid, partsub);
+
+            fft_k2x(grid, 0);
+            clock_t t = clock();
+            double Ngsub3 = (double)Ngsub*Ngsub*Ngsub;
+            for (int i = -Ngsub+1; i < Ngsub; ++i)
+            for (int j = -Ngsub+1; j < Ngsub; ++j)
+            for (int k = -Ngsub+1; k < Ngsub; ++k) {
+                double Winv = Ngsub3 / ((double)(Ngsub-abs(i)) * (Ngsub-abs(j)) * (Ngsub-abs(k)));
+                F(grid,(i+Ng)%Ng,(j+Ng)%Ng,(k+Ng)%Ng) *= Winv;
+            }
+            fprintf(stderr, "main() %.3fs on deconvolution\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+            fft_x2k(grid, 0);
+
             retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd1_los%d%d%d_sb%d%d%d.txt",
                     outdir, a, id, ilos, jlos, klos, isub, jsub, ksub);
             assert(retval>=0 && retval<maxlen);
             Pl(grid, partsub, los, dK, outfile);
+            retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pmu_rsd1_los%d%d%d_sb%d%d%d.txt",
+                    outdir, a, id, ilos, jlos, klos, isub, jsub, ksub);
+            assert(retval>=0 && retval<maxlen);
+            Pmu(grid, partsub, los, dK, outfile);
         }
         assert(Nptot == part->Np);
     }
 
     fprintf(stderr, "\n################ without rsd ################\n\n");
     long Nptot = 0;
+    double *fk_copy = NULL;
     for (int isub = 0; isub < Nsub; ++isub)
     for (int jsub = 0; jsub < Nsub; ++jsub)
     for (int ksub = 0; ksub < Nsub; ++ksub) {
@@ -91,21 +111,42 @@ int main(int argc, char *argv[]) {
         Nptot += partsub->Np;
 
         fft_p2k(grid, partsub);
+        free(fk_copy);
+        fk_copy = fft_exportf(grid);
 
         for (int ilos = 0; ilos < 2; ++ilos)  /* skip {0,0,0}, {1,1,1} */
         for (int jlos = 0; jlos < 2; ++jlos)
         for (int klos = (ilos==0 && jlos==0); klos < 2 - (ilos==1 && jlos==1); ++klos) {
             fprintf(stderr, "------------------ los div ------------------\n");
+            fft_importf(grid, fk_copy);
+            P(grid, partsub);
+
+            fft_k2x(grid, 0);
+            clock_t t = clock();
+            double Ngsub3 = (double)Ngsub*Ngsub*Ngsub;
+            for (int i = -Ngsub+1; i < Ngsub; ++i)
+            for (int j = -Ngsub+1; j < Ngsub; ++j)
+            for (int k = -Ngsub+1; k < Ngsub; ++k) {
+                double Winv = Ngsub3 / ((double)(Ngsub-abs(i)) * (Ngsub-abs(j)) * (Ngsub-abs(k)));
+                F(grid,(i+Ng)%Ng,(j+Ng)%Ng,(k+Ng)%Ng) *= Winv;
+            }
+            fprintf(stderr, "main() %.3fs on deconvolution\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+            fft_x2k(grid, 0);
+
             double los[3] = {ilos, jlos, klos};
-            char outfile[maxlen];
             retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd0_los%d%d%d_sb%d%d%d.txt",
                     outdir, a, id, ilos, jlos, klos, isub, jsub, ksub);
             assert(retval>=0 && retval<maxlen);
             Pl(grid, partsub, los, dK, outfile);
+            retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pmu_rsd0_los%d%d%d_sb%d%d%d.txt",
+                    outdir, a, id, ilos, jlos, klos, isub, jsub, ksub);
+            assert(retval>=0 && retval<maxlen);
+            Pmu(grid, partsub, los, dK, outfile);
         }
     }
     assert(Nptot == part->Np);
 
+    free(fk_copy);
     fft_free(grid);
     gal_free(part); gal_free(partrsd); gal_free(partsub);
     return 0;

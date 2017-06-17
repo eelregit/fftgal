@@ -4,3 +4,6 @@
 * paint with PCS scheme
 * optional interlacing (Sefusatti et al. 2016)
 * automatic folding
+
+# TODO
+* fine low-k interp for Pl

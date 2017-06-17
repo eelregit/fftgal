@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
         hat(los);
 
         double DeltaL[3][Nsub*Nsub*Nsub];
-        for (int Lhalf = 0; Lhalf <= 2; ++Lhalf) {
+        for (int iL = 0; iL <= 2; ++iL) {
             if (fk_copy == NULL) {
                 double offset[3] = {0, 0, 0};
                 fft_p2g(grid, part, offset);
@@ -76,15 +76,15 @@ int main(int argc, char *argv[]) {
                 double mu2 = gsl_pow_2((Kval[i]*los[0] + Kval[j]*los[1] + Kval[k]*los[2]) / Kamp);
                 double Legendre[3] = {1, 1.5*mu2 - 0.5, (4.375*mu2 - 3.75)*mu2 + 0.375};
                 double W = tophat(Kamp * M_PI*M_SQRT3 / Nsub);
-                F_Re(grid,i,j,k) *= Legendre[Lhalf] * W;
-                F_Im(grid,i,j,k) *= Legendre[Lhalf] * W;
+                F_Re(grid,i,j,k) *= Legendre[iL] * W;
+                F_Im(grid,i,j,k) *= Legendre[iL] * W;
             }
 
             fft_k2x(grid, 0);
             for (int isub = 0; isub < Nsub; ++isub)
             for (int jsub = 0; jsub < Nsub; ++jsub)
             for (int ksub = 0; ksub < Nsub; ++ksub)
-                DeltaL[Lhalf][(isub*Nsub + jsub)*Nsub + ksub]
+                DeltaL[iL][(isub*Nsub + jsub)*Nsub + ksub]
                     = F(grid, isub*Ngsub, jsub*Ngsub, ksub*Ngsub) / bias;
         }
 

@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     gal_t *part = gal_loadqpm_cubic(infile, L);
 
     double *fk_copy = NULL;
-    double Wamp[Ng], Wph[3*Ng][2];  /* subbox smoothing */
+    double Wamp[Ng], Wph[3*Ng][2];
     Wamp[0] = 1;
     for (int i = 1; i < Ng; ++i)
         Wamp[i] = sin(M_PI * i / Nsub) / sin(M_PI * i / Ng) / Ngsub;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
         hat(los);
 
         double DeltaL[3][Nsub*Nsub*Nsub];
-        for (int Lhalf = 0; Lhalf <= 2; ++Lhalf) {
+        for (int iL = 0; iL <= 2; ++iL) {
             if (fk_copy == NULL) {
                 double offset[3] = {0.5, 0.5, 0.5};
                 fft_p2g(grid, part, offset);
@@ -83,15 +83,15 @@ int main(int argc, char *argv[]) {
                 double W_im = Wph[i+j+k][1] * Wamp3;
                 double f_re = F_Re(grid,i,j,k);
                 double f_im = F_Im(grid,i,j,k);
-                F_Re(grid,i,j,k) = Legendre[Lhalf] * (f_re*W_re - f_im*W_im);
-                F_Im(grid,i,j,k) = Legendre[Lhalf] * (f_re*W_im + f_im*W_re);
+                F_Re(grid,i,j,k) = Legendre[iL] * (f_re*W_re - f_im*W_im);
+                F_Im(grid,i,j,k) = Legendre[iL] * (f_re*W_im + f_im*W_re);
             }
 
             fft_k2x(grid, 0);
             for (int isub = 0; isub < Nsub; ++isub)
             for (int jsub = 0; jsub < Nsub; ++jsub)
             for (int ksub = 0; ksub < Nsub; ++ksub)
-                DeltaL[Lhalf][(isub*Nsub + jsub)*Nsub + ksub]
+                DeltaL[iL][(isub*Nsub + jsub)*Nsub + ksub]
                     = F(grid, isub*Ngsub, jsub*Ngsub, ksub*Ngsub) / bias;
         }
 

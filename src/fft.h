@@ -7,7 +7,7 @@
 #include "gal.h"
 
 /* field value in configuration space */
-#define F(self,i,j,k) (self->f[(((long)(i) * self->Ng + (long)(j)) * self->Ng_pad + (long)(k))])
+#define F(self,i,j,k) (self->f[((long)(i) * self->Ng + (j)) * self->Ng_pad + (k)])
 /* field value in Fourier space */
 #define F_Re(self,i,j,k) F(self,i,j,2*k)
 #define F_Im(self,i,j,k) F(self,i,j,2*k+1)
