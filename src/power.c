@@ -23,7 +23,7 @@ void P(fft_t *grid, gal_t *part) {
         F_Re(grid,i,j,k) = delta2 * Vinv - Pshot;
         F_Im(grid,i,j,k) = 0;
     }
-    fprintf(stderr, "P() %.3fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+    fprintf(stderr, "P() %.2fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
 }
 
 
@@ -97,7 +97,7 @@ void Pl(fft_t *grid, gal_t *part, double los[3], double dK, char *file) {
         fprintf(fp, "\n");
     }
     fclose(fp);
-    fprintf(stderr, "Pl() %.3fs, saved to %s\n", (double)(clock()-t)/CLOCKS_PER_SEC, file);
+    fprintf(stderr, "Pl() %.2fs, saved to %s\n", (double)(clock()-t)/CLOCKS_PER_SEC, file);
 }
 
 
@@ -174,5 +174,5 @@ void Pmu(fft_t *grid, gal_t *part, double los[3], double dK, char *file) {
         fprintf(fp, "\n");
     }
     fclose(fp);
-    fprintf(stderr, "Pmu() %.3fs, saved to %s\n", (double)(clock()-t)/CLOCKS_PER_SEC, file);
+    fprintf(stderr, "Pmu() %.2fs, saved to %s\n", (double)(clock()-t)/CLOCKS_PER_SEC, file);
 }

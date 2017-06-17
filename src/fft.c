@@ -39,7 +39,7 @@ fft_t *fft_init(int Ng, double L, char *wisdom) {
             self->k2x = fftw_plan_dft_c2r_3d(Ng, Ng, Ng, fk, fx, FFTW_MEASURE);
             retval = fftw_export_wisdom_to_filename(wisdom); assert(retval);
             fprintf(stderr, "fft_init() exported wisdom to %s\n", wisdom);
-            fprintf(stderr, "fft_init() %.3fs on FFTW_MEASURE\n",
+            fprintf(stderr, "fft_init() %.2fs on FFTW_MEASURE\n",
                     (double)(clock()-t)/CLOCKS_PER_SEC);
         }
     }
@@ -127,7 +127,7 @@ void fft_p2g(fft_t *self, gal_t *part, double offset[3]) {
     double Npcinv = 1 / nbar / H3;  /* inverse of Np/cell */
     for (long g = 0; g < self->Ng3_pad; ++g)
         self->f[g] *= Npcinv;
-    fprintf(stderr, "fft_p2g() %.3fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+    fprintf(stderr, "fft_p2g() %.2fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
 }
 
 
@@ -164,7 +164,7 @@ double *fft_g2p(fft_t *self, gal_t *pos) {
         for (int k = 0; k < 4; ++k)
             f_interp[p] = F(self, gi[i], gj[j], gk[k]) * wx[i] * wy[j] * wz[k];
     }
-    fprintf(stderr, "fft_g2p() %.3fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+    fprintf(stderr, "fft_g2p() %.2fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
     return f_interp;
 }
 
@@ -177,7 +177,7 @@ void fft_x2k(fft_t *self, int offset_phase_on) {
         self->f[g] *= H3;
     if (offset_phase_on)
         fft_offset_phase(self, 1);
-    fprintf(stderr, "fft_x2k() %.3fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+    fprintf(stderr, "fft_x2k() %.2fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
 }
 
 
@@ -189,7 +189,7 @@ void fft_k2x(fft_t *self, int offset_phase_off) {
         self->f[g] *= L3inv;
     if (offset_phase_off)
         fft_offset_phase(self, -1);
-    fprintf(stderr, "fft_k2x() %.3fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+    fprintf(stderr, "fft_k2x() %.2fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
 }
 
 
@@ -250,7 +250,7 @@ void fft_deconv(fft_t *self) {
         F_Re(self,i,j,k) *= Winv3;
         F_Im(self,i,j,k) *= Winv3;
     }
-    fprintf(stderr, "fft_deconv() %.3fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+    fprintf(stderr, "fft_deconv() %.2fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
 }
 
 

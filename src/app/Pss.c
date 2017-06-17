@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
                     F(grid,(i+Ng)%Ng,(j+Ng)%Ng,(k+Ng)%Ng) *= Winv;
                 }
             }
-            fprintf(stderr, "main() %.3fs on deconvolution\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+            fprintf(stderr, "main() %.2fs on deconvolution\n", (double)(clock()-t)/CLOCKS_PER_SEC);
             fft_x2k(grid, 0);
 
             retval = snprintf(outfile, maxlen, "%s/a%.4f_%04d/Pl_rsd1_los%d%d%d_ss%d%d%d.txt",
@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
                     F(grid,(i+Ng)%Ng,(j+Ng)%Ng,(k+Ng)%Ng) *= Winv;
                 }
             }
-            fprintf(stderr, "main() %.3fs on deconvolution\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+            fprintf(stderr, "main() %.2fs on deconvolution\n", (double)(clock()-t)/CLOCKS_PER_SEC);
             fft_x2k(grid, 0);
 
             double los[3] = {ilos, jlos, klos};

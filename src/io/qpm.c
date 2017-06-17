@@ -28,7 +28,7 @@ gal_t *gal_loadqpm_cubic(char *file, double L) {
         assert(retval == 6);
     }
     fclose(fp);
-    fprintf(stderr, "gal_loadqpm_cubic() %.3fs, loaded %d galaxies\n",
+    fprintf(stderr, "gal_loadqpm_cubic() %.2fs, loaded %d galaxies\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Np);
     return part;
 }

@@ -56,7 +56,7 @@ void gal_wrap(gal_t *self, double L) {
         self->y[p] -= L * floor(self->y[p] * Linv);
         self->z[p] -= L * floor(self->z[p] * Linv);
     }
-    fprintf(stderr, "gal_wrap() %.3fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
+    fprintf(stderr, "gal_wrap() %.2fs\n", (double)(clock()-t)/CLOCKS_PER_SEC);
 }
 
 
@@ -71,7 +71,7 @@ gal_t *gal_rsd(gal_t *self, double los[3], double aH) {
         distorted->y[p] = self->y[p] + aHinv * vdotlos * los[1];
         distorted->z[p] = self->z[p] + aHinv * vdotlos * los[2];
     }
-    fprintf(stderr, "gal_rsd() %.3fs, los[]={%.3f,%.3f,%.3f}\n",
+    fprintf(stderr, "gal_rsd() %.2fs, los[]={%.3f,%.3f,%.3f}\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, los[0], los[1], los[2]);
     return distorted;
 }
@@ -114,7 +114,7 @@ gal_t *gal_subbox(gal_t *self, double box[7], double alpha) {
     }
     sub->rand = rand;
 
-    fprintf(stderr, "gal_subbox() %.3fs, picked out %ld+%ld particles\n",
+    fprintf(stderr, "gal_subbox() %.2fs, picked out %ld+%ld particles\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Npsub, Nprand);
     return sub;
 }
@@ -153,7 +153,7 @@ gal_t *gal_subsphere(gal_t *self, double sphere[5], double alpha) {
     }
     sub->rand = rand;
 
-    fprintf(stderr, "gal_subsphere() %.3fs, picked out %ld+%ld particles\n",
+    fprintf(stderr, "gal_subsphere() %.2fs, picked out %ld+%ld particles\n",
             (double)(clock()-t)/CLOCKS_PER_SEC, Npsub, Nprand);
     return sub;
 }
