@@ -1,15 +1,17 @@
 #!/bin/bash
 #SBATCH --ntasks=1
 #SBATCH --partition=shared
-#SBATCH --time=3:00:00
-#SBATCH --job-name=Pfd
+#SBATCH --mem=5GB
+#SBATCH --time=12:00:00
+#SBATCH --job-name=Pss
 #SBATCH --output=P%j.out
 
-APP=$SCRATCH/fftgal/Pl
-Ng=128
+APP=$SCRATCH/fftgal/Pss
+Ng=512
 L=2560
-fold=4
+Nsub=4
 wisdom=${Ng}.wsdm
+alpha=0.02
 dK=0.01
 indir=/project/projectdirs/boss/galaxy/QPM/dr12d_cubic_mocks
 a=0.6452
@@ -17,10 +19,10 @@ outdir=$SCRATCH/ssm.d
 
 echo ${SLURM_JOB_ID} starting $(date) on $(hostname)
 module load gcc fftw gsl
-make Pl
+make Pss
 for id in $@
 do
-    log=$outdir/a${a}_$(printf '%04d' $id)/Pfd.log
-    time $APP $Ng $L $fold $wisdom $dK $indir $a $id $outdir 2> $log
+    log=$outdir/a${a}_$(printf '%04d' $id)/Pss.log
+    time GSL_RNG_SEED=$id $APP $Ng $L $Nsub $wisdom $alpha $dK $indir $a $id $outdir 2> $log
 done
 echo ${SLURM_JOB_ID} ending $(date)

@@ -4,27 +4,27 @@ LIBS = -lfftw3 $(shell gsl-config --libs)
 
 .PHONY: all clean
 
-all: test_octet Pl Plsb Plss DLsb DLss
+all: test_octet P Psb Pss DLsb DLss
 
 clean:
-	rm -f test_octet Pl Plsb Plss DLsb DLss
+	rm -f test_octet P Psb Pss DLsb DLss
 
 test_octet: src/tests/octet.c src/fft.c src/fft.h src/gal.c src/gal.h
 	$(CC) $(CFLAGS) src/tests/octet.c src/fft.c src/gal.c $(LIBS) -o $@
 
-Pl: src/app/Pl.c src/fft.c src/fft.h src/gal.c src/gal.h \
+P: src/app/P.c src/fft.c src/fft.h src/gal.c src/gal.h \
 	src/power.c src/power.h src/io/qpm.c src/io/io.h
-	$(CC) $(CFLAGS) src/app/Pl.c src/fft.c src/gal.c src/power.c \
+	$(CC) $(CFLAGS) src/app/P.c src/fft.c src/gal.c src/power.c \
 		src/io/qpm.c $(LIBS) -o $@
 
-Plsb: src/app/Plsb.c src/fft.c src/fft.h src/gal.c src/gal.h \
+Psb: src/app/Psb.c src/fft.c src/fft.h src/gal.c src/gal.h \
 	src/power.c src/power.h src/io/qpm.c src/io/io.h
-	$(CC) $(CFLAGS) src/app/Plsb.c src/fft.c src/gal.c src/power.c \
+	$(CC) $(CFLAGS) src/app/Psb.c src/fft.c src/gal.c src/power.c \
 		src/io/qpm.c $(LIBS) -o $@
 
-Plss: src/app/Plss.c src/fft.c src/fft.h src/gal.c src/gal.h \
+Pss: src/app/Pss.c src/fft.c src/fft.h src/gal.c src/gal.h \
 	src/power.c src/power.h src/io/qpm.c src/io/io.h
-	$(CC) $(CFLAGS) src/app/Plss.c src/fft.c src/gal.c src/power.c \
+	$(CC) $(CFLAGS) src/app/Pss.c src/fft.c src/gal.c src/power.c \
 		src/io/qpm.c $(LIBS) $(GSL_FLAGS) -o $@
 
 DLsb: src/app/DLsb.c src/fft.c src/fft.h src/gal.c src/gal.h \
